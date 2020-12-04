@@ -1,0 +1,36 @@
+CREATE OR REPLACE FUNCTION fn_Split_String_Into_Line
+--======================================================
+--Author: Nghi Ta
+--Created Date: 2020-04-06
+--Description:Split string value into line
+--list of value
+--======================================================
+(
+
+    @INPUT_VALUE clob(2M)  
+
+) 
+RETURNS TABLE (LEVEL INT, ITEM VARCHAR(10000) )
+
+LANGUAGE SQL
+
+RETURN
+
+ 
+WITH R1 (LEVEL,ITEM, REMINDER) AS 
+(SELECT 1 AS LEVEL, SUBSTR(@INPUT_VALUE, 1, LOCATE(chr(10), @INPUT_VALUE)-1) AS ITEM, 
+SUBSTR(@INPUT_VALUE, LOCATE(chr(10), @INPUT_VALUE)+1, LENGTH(@INPUT_VALUE)) REMINDER
+FROM SYSIBM.SYSDUMMY1
+
+UNION ALL
+
+SELECT LEVEL+ 1 AS LEVEL, SUBSTR(REMINDER, 1, LOCATE(chr(10), REMINDER)-1) AS ITEM, 
+SUBSTR(REMINDER, LOCATE(chr(10), REMINDER)+1, LENGTH(REMINDER)) REMINDER 
+FROM R1 WHERE LOCATE(chr(10), REMINDER) > 0 AND LEVEL<10000
+)
+
+SELECT LEVEL, LTRIM(RTRIM(ITEM)) 
+FROM R1
+ 
+
+

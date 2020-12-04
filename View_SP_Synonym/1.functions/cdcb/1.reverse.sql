@@ -1,0 +1,28 @@
+CREATE OR REPLACE FUNCTION REVERSE
+--======================================================
+--Author: CDCB team
+--Created Date: 2020-04-06
+--Description:
+--======================================================
+(INSTR VARCHAR(8))
+RETURNS VARCHAR(8)
+SPECIFIC REVERSE
+DETERMINISTIC NO EXTERNAL ACTION CONTAINS SQL
+BEGIN ATOMIC
+     DECLARE REVSTR, RESTSTR VARCHAR(4000) DEFAULT '';
+     DECLARE LEN INT;
+     IF INSTR IS NULL THEN
+     RETURN NULL;
+     END IF;
+     SET (RESTSTR, LEN) = (INSTR, LENGTH(INSTR));
+     WHILE LEN > 0 DO
+     SET (REVSTR, RESTSTR, LEN) 
+       = (SUBSTR(RESTSTR, 1, 1) CONCAT REVSTR, 
+       SUBSTR(RESTSTR, 2, LEN - 1),
+       LEN - 1);
+
+  END WHILE;
+  RETURN REVSTR;
+END
+
+

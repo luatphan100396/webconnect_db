@@ -1,0 +1,14 @@
+# deploy to CDCB server
+scp -rp /home/db2inst1/CDCB/Deploy/DB  lthoanganh@66.148.97.215:.
+# pass: die1EiphTeecah1f
+ 
+ssh    lthoanganh@66.148.97.215
+
+sudo cp -r /home/lthoanganh/DB /home/db2inst1/DB 
+cd /home/db2inst1
+sudo chown db2inst1 -R DB
+
+su - db2inst1
+cd /home/db2inst1/DB
+
+bash deploy_DB.bat
