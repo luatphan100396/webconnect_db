@@ -24,25 +24,28 @@ BEGIN
  DECLARE DEFAULT_DATE DATE;
  DECLARE MAX_BBR DECIMAL(6,2);
 	 
+	 
+	 DECLARE GLOBAL TEMPORARY TABLE SESSION.TMP_INPUT
+	(
+	    INT_ID char(17), 
+		ANIM_KEY INT, 
+		SPECIES_CODE char(1),
+		SEX_CODE char(1)
+	
+	) WITH REPLACE ON COMMIT PRESERVE ROWS;
+	
+	
     DECLARE GLOBAL TEMPORARY TABLE SESSION.TMP_ANIMAL_BLEND_CODE  
 	(
-	    ANIM_KEY INT,
-	    INT_ID char(17),
+	    ANIM_KEY INT, 
+	    INT_ID char(17), 
+	    EVAL_BREED_CODE CHAR(2),
 		BLEND_CODE CHAR(1) 
 	
-	) WITH REPLACE ON COMMIT PRESERVE ROWS;
-	
-	DECLARE GLOBAL TEMPORARY TABLE SESSION.TMP_ANIM_GEN_K_CONFLICT  
-	(
-	    ANIM_KEY INT,
-	    EVAL_BREED_CODE CHAR(2),
-		NUM_CONFLICT SMALLINT
-	
-	) WITH REPLACE ON COMMIT PRESERVE ROWS;
+	) WITH REPLACE ON COMMIT PRESERVE ROWS; 
 		
-	SET DEFAULT_DATE = (select STRING_VALUE FROM dbo.constants where name ='Default_Date_Value' LIMIT 1);
-     
-    
+	
+      
  	DECLARE GLOBAL TEMPORARY TABLE SESSION.TMP_GENOTYPE_TABLE AS
 	(
 		SELECT CAST('' AS CHAR(17)) AS INT_ID,
@@ -122,12 +125,38 @@ BEGIN
 		 
 	) with replace ON COMMIT PRESERVE ROWS;
 		
+	
+     DECLARE GLOBAL TEMPORARY TABLE SESSION.TMP_INPUT
+	(
+	    INT_ID char(17), 
+		ANIM_KEY INT, 
+		SPECIES_CODE char(1),
+		SEX_CODE char(1)
+	
+	) WITH REPLACE ON COMMIT PRESERVE ROWS;
+	
+	
+	SET DEFAULT_DATE = (select STRING_VALUE FROM dbo.constants where name ='Default_Date_Value' LIMIT 1);
+	
+	
+	INSERT INTO SESSION.TMP_INPUT 
+   (    INT_ID, 
+		ANIM_KEY, 
+		SPECIES_CODE,
+		SEX_CODE 
+	)
+	VALUES (@INT_ID, 
+			@ANIM_KEY, 
+			@SPECIES_CODE,
+			@SEX_CODE 
+		);
 	 
    -- Populate data for tempory GENOTYPE_TABLE
     INSERT INTO SESSION.TMP_GENOTYPE_TABLE
-    SELECT @INT_ID as INT_ID, gTable.*
-    FROM   GENOTYPE_TABLE gTable
-    WHERE  gTable.ANIM_KEY = @ANIM_KEY;
+    SELECT t.INT_ID, gTable.*
+    FROM  SESSION.TMP_INPUT t
+    INNER JOIN   GENOTYPE_TABLE gTable
+    	ON t.ANIM_KEY = gTable.ANIM_KEY ; 
 	
 	
 	 
@@ -209,8 +238,8 @@ WITH UR;
 						           AND ( (YOUR_GENOTYPE = 'GENOTYPE_ID_NUM' AND ROOT_CONFLICT_CODE IN ('M','T'))
 						               OR (YOUR_GENOTYPE = 'CONFLICT_ID_NUM' AND ROOT_CONFLICT_CODE ='Y')
 						               )then 'Discovered Dam'
-						      when (YOUR_GENOTYPE = 'CONFLICT_ID_NUM' AND ROOT_CONFLICT_CODE IN ('R','M','T')
-						            OR YOUR_GENOTYPE = 'GENOTYPE_ID_NUM' AND ROOT_CONFLICT_CODE IN ('Y')
+						      when ((YOUR_GENOTYPE = 'CONFLICT_ID_NUM' AND ROOT_CONFLICT_CODE IN ('R','M','T'))
+						            OR (YOUR_GENOTYPE = 'GENOTYPE_ID_NUM' AND ROOT_CONFLICT_CODE IN ('Y'))
 						      
 						            )then 'Potential Progeny'
 						       else CONFLICT_TYPE
@@ -288,23 +317,24 @@ WITH UR;
 	    SIRE_INT_ID,
 	    DAM_INT_ID
     )
-    SELECT @INT_ID as ROOT_INT_ID,
+    SELECT a.INT_ID as ROOT_INT_ID,
 	    sireID.INT_ID as SIRE_INT_ID,
 	    damID.INT_ID as DAM_INT_ID
 	FROM  
     (
-    SELECT ANIM_KEY, SIRE_KEY, DAM_KEY
-    FROM PEDIGREE_TABLE 
-    WHERE ANIM_KEY = @ANIM_KEY
-    AND SPECIES_CODE = @SPECIES_CODE
+    SELECT t.ANIM_KEY, t.INT_ID, t.SPECIES_CODE, p.SIRE_KEY, p.DAM_KEY 
+    FROM SESSION.TMP_INPUT t
+    INNER JOIN  PEDIGREE_TABLE  p
+    	ON t.ANIM_KEY =  p.ANIM_KEY
+    	AND t.SPECIES_CODE = p.SPECIES_CODE 
     )a
     LEFT JOIN ID_XREF_TABLE sireID 
     ON sireID.ANIM_KEY = a.SIRE_KEY
-    AND sireID.SPECIES_CODE = @SPECIES_CODE
+    AND sireID.SPECIES_CODE = a.SPECIES_CODE
     AND sireID.PREFERRED_CODE = 1
     LEFT JOIN ID_XREF_TABLE damID 
     ON damID.ANIM_KEY = a.DAM_KEY
-    AND damID.SPECIES_CODE = @SPECIES_CODE
+    AND damID.SPECIES_CODE = a.SPECIES_CODE
     AND damID.PREFERRED_CODE = 1 with UR;
  
 		
@@ -383,54 +413,75 @@ WITH UR;
 	 
 	   
 	-- BLEND CODE
-	 
-    INSERT INTO SESSION.TMP_ANIMAL_BLEND_CODE  (ANIM_KEY,INT_ID,BLEND_CODE )
-    SELECT    @ANIM_KEY as ANIM_KEY,
-              @INT_ID as INT_ID,
-              case when bbr.ANIM_KEY is not null then case when  max (aypct,bspct,gupct,hopct,jepct)>= 89.5 then 'S' 
-										                   else   'M' 
-										              end 
-				   else ''
-				end as BLEND_CODE  
-    FROM 
-       ( SELECT DISTINCT ANIM_KEY
-                  FROM SESSION.TMP_GENOTYPE_TABLE with UR
-      )t
-    LEFT JOIN bbr_eval_table bbr 
-    ON t.ANIM_KEY =  bbr.ANIM_KEY with UR;
-    
-    
-    INSERT INTO SESSION.TMP_ANIM_GEN_K_CONFLICT    (ANIM_KEY, EVAL_BREED_CODE,NUM_CONFLICT)
-    SELECT gTable.ANIM_KEY,gTable.EVAL_BREED_CODE, COUNT(1)  
-    FROM   
-    (select  GENOTYPE_ID_NUM, ANIM_KEY,EVAL_BREED_CODE
-    from SESSION.TMP_GENOTYPE_TABLE gTable
-    where COALESCE(TRIM(gTable.EVAL_BREED_CODE),'') <> '' with UR
-    )gTable
-    INNER JOIN GENOTYPE_CONFLICTS_TABLE gCTable ON gCTable.GENOTYPE_ID_NUM = gTable.GENOTYPE_ID_NUM AND gCTable.CONFLICT_CODE = 'k'
-    GROUP BY ANIM_KEY,EVAL_BREED_CODE with UR;
-    
-    
-    
-    MERGE INTO SESSION.TMP_ANIMAL_BLEND_CODE as A
-	 using
+	 INSERT INTO SESSION.TMP_ANIMAL_BLEND_CODE  
 	 (
-	   SELECT blend_code.ANIM_KEY,
-          CASE WHEN COALESCE(k_conflict.NUM_CONFLICT,0) =0 AND COALESCE(k_conflict.EVAL_BREED_CODE,'') in ('AY','BS','GU','HO','JE','XX') then 'X'
-               WHEN COALESCE(k_conflict.NUM_CONFLICT,0) =0 AND COALESCE(k_conflict.EVAL_BREED_CODE,'') NOT IN ('AY','BS','GU','HO','JE','XX') then 'P'
-               ELSE 'X'
-          END AS  BLEND_CODE
-    
-     FROM  SESSION.TMP_ANIMAL_BLEND_CODE blend_code
-     LEFT JOIN  SESSION.TMP_ANIM_GEN_K_CONFLICT k_conflict ON blend_code.ANIM_KEY = k_conflict.ANIM_KEY
-     WHERE COALESCE(blend_code.BLEND_CODE,'') = '' with UR
-	 )AS B
-	 ON A.ANIM_KEY = B.ANIM_KEY
+	    ANIM_KEY,
+	    INT_ID,
+	    EVAL_BREED_CODE,
+		BLEND_CODE 
+	 )
+     SELECT DISTINCT 
+	        ANIM_KEY,
+		    INT_ID,
+		    EVAL_BREED_CODE,
+			'' AS BLEND_CODE  
+    FROM SESSION.TMP_GENOTYPE_TABLE;
+  
 	 
-	 WHEN MATCHED THEN
-	 UPDATE SET 
-	 BLEND_CODE =  B.BLEND_CODE;
+	 /*
+	 ***Step 1***
+     If animal  has genotype and exist in BBR_EVAL_TABLE  with max (aypct,bspct,gupct,hopct,jepct)>= 89.5 then Blend Code = 'S' else  Blend_Code = 'M' 
+	 */
 	 
+    MERGE INTO SESSION.TMP_ANIMAL_BLEND_CODE as A
+		 using
+		 ( 
+			  SELECT t.ANIM_KEY,
+		             case when  max(bbr.aypct,bbr.bspct,bbr.gupct,bbr.hopct,bbr.jepct) >= 89.5 then 'S'
+		                  else 'M'
+		             end as BLEND_CODE
+			 FROM SESSION.TMP_ANIMAL_BLEND_CODE t
+			 INNER JOIN BBR_EVAL_TABLE bbr
+			 	ON t.ANIM_KEY = bbr.ANIM_KEY
+		 )AS B 
+		 ON  A.ANIM_KEY = B.ANIM_KEY 
+		 WHEN MATCHED THEN 
+		 UPDATE SET BLEND_CODE = B.BLEND_CODE
+		 ;
+		 
+		
+	 /*
+	 ***Step 2***
+	    For animal with blend_code  not been set from step 1 and thier eval_breed_code is not missing
+	     If animal has no 'k' genotype conflict then Blend_Code = 'P' else  Blend_Code = 'X'
+	 
+	 */
+     MERGE INTO SESSION.TMP_ANIMAL_BLEND_CODE   as A
+	 USING
+		 ( 
+				 select   t.anim_key, 
+					        case when max(gc.genotype_id_num) is null  then 'P'-- has no k conflict
+					             else 'X'
+					         end as blend_code
+				 from  
+				 (
+					 select *
+					 from SESSION.TMP_ANIMAL_BLEND_CODE
+					 where blend_code =' ' and eval_breed_code <>'  '
+				 )t
+				 inner join SESSION.TMP_GENOTYPE_TABLE gt
+				 	on t.anim_key = gt.anim_key
+				 left join GENOTYPE_CONFLICTS_TABLE gc
+				  	on gc.genotype_id_num = gt.genotype_id_num
+				  	and gc.conflict_code='k'
+				 group by t.anim_key
+ 
+		 )AS B
+		 ON  A.anim_key = B.anim_key 
+		 WHEN MATCHED THEN 
+		 UPDATE SET BLEND_CODE = B.BLEND_CODE
+		 ; 
+	   
 	 
  -- Get genotype group
  BEGIN

@@ -16,8 +16,8 @@
   
  if [ ${IsFreshMode} -eq 1 ]
   then 
-         echo "Deploy fresh mode";
-		 db2 create database ${DB_Name} >> deploy.log;
+         echo "Deploy fresh mode"; 
+		 db2 -t -f ./Create_DB/1.createdb.CDCBDB.sql
 		 db2 connect to ${DB_Name};
 		 bash deploy_DM.bat
 		 if [ $? -gt 0 ]

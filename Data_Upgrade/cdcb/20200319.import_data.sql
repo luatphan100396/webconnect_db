@@ -5,25 +5,7 @@
  INSERT INTO dbo.CONSTANTS(NAME,STRING_VALUE)      
  VALUES     ('Default_Date_Value','1960-01-01');	
 
-
-INSERT INTO dbo.USERS(USER_NAME,PASSWORD) 
-VALUES 	('admin','$2b$12$0THlGdAG4yid9UB7uG6VuOz7qGPXjN/VKOGuG.dPydWftiGp3dhse')
-		,('creator','$2b$12$pT9XPmTHxT/ilE21M4TsxevZz48xh8jgwKPEmE4QtSZeLlbqRGTGy')
- 		,('guest', '$2b$12$Hu1GFSHWGkdNoUNCzU9LGeE2L6nOoweRmViYv5E2nwirDzI2CbyVa');
- 
- 		
-INSERT INTO dbo.ROLES(ROLE)
-VALUES 	('admin')
- 	   	,('creator')
- 		,('guest');
-
-INSERT INTO dbo.USER_ROLES(ROLE,USER_NAME)
-VALUES 	('admin','admin')
- 	   	,('creator','admin')
-  	   	,('creator','creator') 	   	
- 		,('guest','admin')
-  	   	,('guest','guest');
-
+  
 insert into trait_table  
 select 
 24 as trait_num,

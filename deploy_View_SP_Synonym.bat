@@ -7,6 +7,33 @@ Error=0;
  #add termination characters : @
  for f in $(find ./View_SP_Synonym/ -name '*.sql'  ); do echo "@">> $f;done
   
+#rem deploy Synomy-DataType
+ echo "Deploying Synomy-DataType" >> deploy.log;
+ echo $?
+ for f in $(find ./View_SP_Synonym/2.Synonym_DataType/ -name '*.sql' | sort -n  ); do 
+ echo $f;
+ db2 -td@ -f $f >> deploy.log; 
+ if [ $? -gt 0 ]
+   then 
+	  echo "Failed to deploy Synomy-DataType: $f" >> deploy.log; 
+	  Error=1;
+	  break;
+  fi
+   
+ done
+ 
+ if [ ${Error} -gt 0 ]  
+  then 
+        echo "Deploy Synomy-DataType failed";
+	    exit;
+		 
+  else 
+        echo "Deploy Synomy-DataType successfully";
+  fi
+ 
+ echo "Deploying Synomy-DataType completed" >> deploy.log;
+
+
  #rem deploy functions
  echo "Deploying functions" >> deploy.log;
  echo $?

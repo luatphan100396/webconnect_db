@@ -24,9 +24,9 @@ BEGIN
 			DECIMAL_ADJUST_CODE
 		from
 		table(fn_Get_List_traits())
-		where TYPE IN ('TRAIT','INDEX','CT_TRAIT')  
-         and TRAIT <>'SCR'
-         order by OrderBy;
+		where TYPE IN ('TRAIT','INDEX','CT_TRAIT')
+		and TRAIT IN ('NM$', 'CM$', 'FM$', 'GM$', 'Mlk', 'Fat', 'Pro', 'PL', 'SCS', 'DPR', 'HCR', 'CCR', 'LIV', 'CE', 'SB')
+        order by OrderBy;
 		OPEN cursor5;
 		  
 	END;
