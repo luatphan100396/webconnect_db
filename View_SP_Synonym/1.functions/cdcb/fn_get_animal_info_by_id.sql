@@ -1,0 +1,64 @@
+CREATE OR REPLACE FUNCTION fn_Get_Animal_Info_By_ID
+--======================================================
+--Author: Trong Le
+--Created Date: 2020-09-30
+--Description: Get animal information with the input INT_ID, ANIM_KEY, SPECIES_CODE, SEX_CODE
+--======================================================
+(
+	@INT_ID			CHAR(17), 
+	@ANIM_KEY		INT, 
+	@SPECIES_CODE	CHAR(1),
+	@SEX_CODE		CHAR(1)
+) 
+RETURNS TABLE (
+	SIRE_ID				CHAR(17),
+	DAM_ID				CHAR(17),
+	BIRTH_DATE			CHAR(8),
+	SOURCE_CODE			CHAR(1),
+	PED_VERIFICATION	CHAR(1),
+	MULTI_BIRTH_CODE	CHAR(1),
+	REGIS_STATUS_CODE	CHAR(2),
+	LONG_NAME			CHAR(30)
+	--OrderBy smallint
+ )
+
+LANGUAGE SQL
+
+RETURN
+	SELECT	CAST(COALESCE(sire.INT_ID, '') AS CHAR(17)) AS SIRE_ID,
+			CAST(COALESCE(dam.INT_ID, '') AS CHAR(17)) AS DAM_ID,
+			CAST(COALESCE(VARCHAR_FORMAT( (date((select STRING_VALUE FROM dbo.constants where name ='Default_Date_Value' LIMIT 1)) + ped.BIRTH_PDATE), 'YYYYMMDD'), '') AS CHAR(8)) AS BIRTH_DATE,
+			CAST(COALESCE(ped.SOURCE_CODE, '') AS CHAR(1)) AS SOURCE_CODE,
+			CAST(COALESCE(ascii(ped.ANIM_INFO_MASK), '') AS CHAR(1)) AS PED_VERIFICATION,
+			CAST(COALESCE(ped.MULTI_BIRTH_CODE, '') AS CHAR(1)) AS MULTI_BIRTH_CODE,
+			CAST(COALESCE(xref.REGIS_STATUS_CODE, '') AS CHAR(2)) AS REGIS_STATUS_CODE,
+			CAST(COALESCE(aname.ANIM_NAME, '') AS CHAR(30)) AS LONG_NAME
+	FROM	(
+				SELECT *
+				FROM ID_XREF_TABLE 
+				WHERE ANIM_KEY = @ANIM_KEY
+				AND SPECIES_CODE = @SPECIES_CODE
+				AND INT_ID = @INT_ID
+				with UR	
+			) xref
+	
+	LEFT JOIN PEDIGREE_TABLE ped
+		ON  ped.ANIM_KEY = @ANIM_KEY
+		AND ped.SPECIES_CODE = @SPECIES_CODE
+	
+	LEFT JOIN ANIM_NAME_TABLE aname
+		ON aname.INT_ID = @INT_ID 
+		AND aname.SEX_CODE  = @SEX_CODE
+		AND aname.SPECIES_CODE  = @SPECIES_CODE
+	
+	LEFT JOIN ID_XREF_TABLE sire
+		ON sire.ANIM_KEY = ped.SIRE_KEY
+		AND sire.SPECIES_CODE = @SPECIES_CODE
+		AND sire.SEX_CODE = 'M'
+		AND sire.PREFERRED_CODE = '1'
+		
+	LEFT JOIN ID_XREF_TABLE dam
+		ON dam.ANIM_KEY = ped.DAM_KEY
+		AND dam.SPECIES_CODE = ped.SPECIES_CODE
+		AND dam.SEX_CODE = 'F'
+		AND dam.PREFERRED_CODE = '1'

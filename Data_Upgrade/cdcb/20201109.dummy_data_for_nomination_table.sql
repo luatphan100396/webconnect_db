@@ -1,0 +1,39 @@
+ 
+insert into NOMINATION_TABLE
+(
+    ANIM_KEY,
+	REQUESTER_ID, 
+	ENTRY_PDATE ,
+	PAID_FEE_ASSIGNED_PDATE , 
+	GROUP_NAME,
+	HERD_REASON_CODE,
+	FEE_SEX_CODE ,
+	CDCB_FEE_PAID_CODE,
+	COMMENT,
+	MODIFY_TIMESTAMP
+)
+select  ANIM_KEY,
+	REQUESTER_ID, 
+	ENTRY_PDATE ,
+	PAID_FEE_ASSIGNED_PDATE , 
+	GROUP_NAME,
+	HERD_REASON_CODE,
+	'U' as FEE_SEX_CODE ,
+	CDCB_FEE_PAID_CODE ,
+	'no comment',
+	current timestamp
+from
+(
+	select ANIM_KEY,
+	REQUESTER_ID, 
+	ENTRY_PDATE ,
+	ENTRY_PDATE as PAID_FEE_ASSIGNED_PDATE , 
+	GROUP_NAME,
+	HERD_REASON_CODE,
+	null as FEE_SEX_CODE,
+	CDCB_FEE_PAID_CODE,
+	row_number()over(partition by ANIM_KEY, REQUESTER_ID order by case when CDCB_FEE_PAID_CODE ='N' then 99  else 1 end ) as rn
+	from GENOTYPE_STATUS_TABLE  
+)a
+where rn =1
+;
