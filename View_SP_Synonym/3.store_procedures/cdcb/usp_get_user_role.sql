@@ -1,7 +1,7 @@
 CREATE OR REPLACE PROCEDURE usp_get_user_role 
 --======================================================
 --Author: Nghi Ta
---Created Date: 2020-04-06
+--Created Date: 2020-12-14
 --Description: Get user role information
 --Output:
 --        +Ds1: Table with features and permissions

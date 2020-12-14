@@ -13,13 +13,12 @@ CREATE OR REPLACE PROCEDURE usp_get_user_password
 BEGIN
 	DECLARE cursor1 CURSOR WITH RETURN for
 
-	SELECT  a.PASSWORD 
+	SELECT  
+			a.USER_NAME,
+			a.PASSWORD 
 	FROM  USERS a
 	WHERE lower(USER_NAME) = lower(@USER_NAME)
 	WITH UR;
 
 	OPEN cursor1;
-END
-
-
-
+END 
