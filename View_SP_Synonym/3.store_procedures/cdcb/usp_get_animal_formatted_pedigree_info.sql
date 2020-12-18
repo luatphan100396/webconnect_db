@@ -1,12 +1,11 @@
- 
-CREATE OR REPLACE PROCEDURE usp_Get_Animal_Formatted_Pedigree_Info 
+CREATE OR REPLACE PROCEDURE usp_Get_Animal_Formatted_Pedigree_Info
 --======================================================
 --Author: Linh Pham
 --Created Date: 2020-12-14
 --Description: Get animal information: INT_ID, name, 
 --birth date, cross reference...
 --Output: 
---        +Ds1: Animal information: INT ID, name, birth date, sex, MBC, REG, SRC...
+--        +Ds Animal information: INT ID, name, birth date, sex, MBC, REG, SRC...
 --======================================================
 (
 	IN @INT_ID char(17), 
@@ -16,51 +15,140 @@ CREATE OR REPLACE PROCEDURE usp_Get_Animal_Formatted_Pedigree_Info
 )
 	DYNAMIC RESULT SETS 1
 P1: BEGIN
+	--DECLARE VARIABLES
+	DECLARE DEFAULT_DATE DATE;
+	DECLARE PREFERRED_INT_ID CHAR(17);
 	--DECLARE TEMPORARY TABLE
-        DECLARE GLOBAL TEMPORARY TABLE SESSION.tmpGetInput
+        DECLARE GLOBAL TEMPORARY TABLE SESSION.TMP_INPUT
 		(
-			INT_ID,
-			ANIM_KEY,
-			SPECIES_CODE,
-			SEX_CODE
+			INT_ID CHAR(17),
+			ANIM_KEY INT,
+			SPECIES_CODE CHAR(1),
+			SEX_CODE CHAR(1)
 		)WITH REPLACE ON COMMIT PRESERVE ROWS;
 
-		DECLARE GLOBAL TEMPORARY TABLE SESSION.tmpGetAnimalInfo_Alias
-		(
-			SEX_CODE,
-			INT_ID,
-			SIRE_INT_ID,
-			DAM_INT_ID,
-			ALIAS,
-			BIRTH_PDATE,
-			SOURCE_CODE,
-			MODIFY_PDATE,
-			
-		)WITH REPLACE ON COMMIT PRESERVE ROWS;
-	
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpAnimalLists_Alias --DROP TABLE SESSION.TmpAnimalLists_Alias
+	(
+		ANIM_KEY int,
+		INT_ID CHAR(17),  
+		MODIFY_DATE VARCHAR(10),
+		REGIS_STATUS_CODE VARCHAR(128),
+		SPECIES_CODE CHAR(1),
+		SEX_CODE CHAR(1),
+		PREFERRED_CODE char(1)
+		 
+	)WITH REPLACE  ON COMMIT PRESERVE ROWS;
+	---SET VARIABLES
+	SET DEFAULT_DATE = (select STRING_VALUE FROM dbo.constants where name ='Default_Date_Value' LIMIT 1 with UR);
+
 	--INSERT INTO TABLE
-	INSERT INTO SESSION.tmpGetInput
+	
+	INSERT INTO SESSION.TMP_INPUT
 	(
 		INT_ID,
 		ANIM_KEY,
 		SPECIES_CODE,
 		SEX_CODE
 	)
-	VALUE
+	VALUES
 	(
 		@INT_ID,
 		@ANIM_KEY,
 		@SPECIES_CODE,
 		@SEX_CODE
+	);
+	
+--	
+--	INSERT INTO SESSION.TMP_INPUT
+--	(  INT_ID,
+--	   ANIM_KEY,
+--	   SPECIES_CODE,
+--	   SEX_CODE
+--   )
+--   SELECT INT_ID,
+--		ANIM_KEY,
+--		SPECIES_CODE,
+--		SEX_CODE
+--   FROM TEST_2000_ANIMALS 
+--   ; 
+	INSERT INTO SESSION.TmpAnimalLists_Alias
+	( 
+	ANIM_KEY,
+	INT_ID, 
+	MODIFY_DATE,
+	REGIS_STATUS_CODE,
+	SPECIES_CODE,
+	SEX_CODE,
+	PREFERRED_CODE
 	)
-		
-	
-	
+	SELECT  
+		 id.ANIM_KEY,
+		 id.INT_ID, 
+		 id.MODIFY_PDATE,
+		 id.REGIS_STATUS_CODE,
+		 id.SPECIES_CODE,
+		 id.SEX_CODE,
+		 id.PREFERRED_CODE
+		 FROM
+		  SESSION.TMP_INPUT t
+		  INNER JOIN ID_XREF_TABLE id
+		  ON t.ANIM_KEY = id.ANIM_KEY
+		  AND t.SEX_CODE = id.SEX_CODE
+		  AND t.SPECIES_CODE = id.SPECIES_CODE
+		  WITH UR
+		 ; 
 	BEGIN
 		DECLARE cursor1  CURSOR WITH RETURN for
-	    SELECT 
-	    
+			   SELECT 
+				 t.INT_ID AS ANIMAL_ID,
+				 pre_id.INT_ID AS ALIAS_ID
+				 ,ped.SEX_CODE AS SEX
+				 ,sire.INT_ID AS SIRE_ID
+				 ,dam.INT_ID AS DAM_ID
+				 ,pre_id.INT_ID AS PREFERED_ID 
+				 ,VARCHAR_FORMAT(DEFAULT_DATE + ped.BIRTH_PDATE,'YYYY-MM-DD') AS BIRTH_PDATE
+				  ,ped.SOURCE_CODE AS SRC
+				 ,VARCHAR_FORMAT(DEFAULT_DATE+ped.MODIFY_PDATE,'YYYY-MM-DD') as MODIFY_DATE 
+				 ,ped.MULTI_BIRTH_CODE AS MBC
+				 ,trim(id.REGIS_STATUS_CODE) AS REG
+				 ,NULL AS CODES
+				 ,NULL AS RHA
+				 ,trim(ressive.RECESSIVE_CODE_SEG) AS RECESSIVES 
+				 ,anim.ANIM_NAME AS LONG_NAME 
+				 ,trim(ref_src.DESCRIPTION)  AS SRC_DESC
+			FROM SESSION.TMP_INPUT t
+			INNER JOIN  SESSION.TmpAnimalLists_Alias id
+			    ON t.ANIM_KEY = id.ANIM_KEY
+				AND t.SEX_CODE = id.SEX_CODE
+				AND t.SPECIES_CODE = id.SPECIES_CODE
+				AND t.INT_ID = id.INT_ID 
+			LEFT JOIN SESSION.TmpAnimalLists_Alias pre_id
+			   	ON  t.ANIM_KEY = pre_id.ANIM_KEY
+				AND t.SEX_CODE = pre_id.SEX_CODE
+				AND t.SPECIES_CODE = pre_id.SPECIES_CODE
+				AND pre_id.PREFERRED_CODE='1' 
+			LEFT JOIN ANIM_NAME_TABLE anim
+				ON anim.INT_ID=t.INT_ID
+				AND anim.SPECIES_CODE=t.SPECIES_CODE
+				AND anim.SEX_CODE=t.SEX_CODE 
+			LEFT JOIN PEDIGREE_TABLE ped
+			    ON ped.ANIM_KEY = t.ANIM_KEY
+			    AND  ped.SPECIES_CODE = t.SPECIES_CODE
+			LEFT JOIN ID_XREF_TABLE sire
+				ON ped.SIRE_KEY= sire.ANIM_KEY
+				AND ped.SPECIES_CODE = sire.SPECIES_CODE
+				AND sire.PREFERRED_CODE='1'
+			LEFT JOIN ID_XREF_TABLE dam
+				ON ped.DAM_KEY= dam.ANIM_KEY
+				AND ped.SPECIES_CODE = dam.SPECIES_CODE
+				AND dam.PREFERRED_CODE='1'
+			LEFT JOIN RECESSIVES_TABLE ressive 
+			ON ressive.ANIM_KEY = t.ANIM_KEY 
+			AND ressive.SPECIES_CODE = t.SPECIES_CODE 
+			LEFT JOIN REFERENCE_TABLE ref_src
+			ON ref_src.CODE = ped.SOURCE_CODE
+			AND ref_src.TYPE = 'SOURCE_CODE'
+			with ur;
 		OPEN cursor1;
-		  
 	END;
-END P1
+END P1 
