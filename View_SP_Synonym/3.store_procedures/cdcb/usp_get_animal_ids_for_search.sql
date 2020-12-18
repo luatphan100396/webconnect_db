@@ -140,7 +140,8 @@ BEGIN
 	   end;
 	 
 	END IF;
-	 
+
+	--Search Animal by Animal ID (17 bytes) API 
 	IF @FILTER_TYPE ='ANIM_KEY_17' THEN
 	
 	     -- Find matching animal id in id_xref_table
