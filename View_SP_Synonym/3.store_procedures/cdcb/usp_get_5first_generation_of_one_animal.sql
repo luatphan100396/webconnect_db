@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE usp_get_3first_generation_of_one_animal
+CREATE OR REPLACE PROCEDURE usp_get_5first_generation_of_one_animal
 --=================================================================
 --Author: Nghi Ta
 --Created Date: 2020-05-12
@@ -12,7 +12,7 @@ CREATE OR REPLACE PROCEDURE usp_get_3first_generation_of_one_animal
 	IN @SPECIES_CODE char(1),
 	IN @SEX_CODE char(1) 
 )
-DYNAMIC RESULT SETS 1
+DYNAMIC RESULT SETS 3
  
 BEGIN
     
@@ -21,17 +21,28 @@ BEGIN
 	SET DEFAULT_DATE = (select STRING_VALUE FROM dbo.constants where name ='Default_Date_Value' LIMIT 1);
 	-- Get list animal id
  
- 
+ 	
+	DECLARE GLOBAL TEMPORARY TABLE SESSION.TMP_INPUT
+	(
+		INT_ID char(17), 
+	    ANIM_KEY INT, 
+	    SPECIES_CODE char(1),
+	    SEX_CODE char(1),
+	    INT_ID_18 char(18),
+	    ORDER int
+	
+	) WITH REPLACE ON COMMIT PRESERVE ROWS;
+	
 	  
 	DECLARE GLOBAL TEMPORARY TABLE SESSION.animals
 	   (
-        ANIM_KEY INT NULL
+         ANIM_KEY INT NULL
         ,SEX_CODE CHAR(1)
         ,SPECIES_CODE CHAR(1)
 		,SIRE_KEY INT NULL
 		,DAM_KEY INT NULL	
-		,GENERATION INT NULL
-		,ROOT_ANIM_KEY  INT
+		,GENERATION INT NULL 
+		,ROOT_ANIMAL_ID CHAR(17)
        
       )with replace
       on commit preserve rows;
@@ -54,8 +65,8 @@ BEGIN
         ,SPECIES_CODE CHAR(1)
 		,SIRE_KEY INT NULL
 		,DAM_KEY INT NULL	
-		,GENERATION INT NULL
-		,ROOT_ANIM_KEY  INT
+		,GENERATION INT NULL 
+		,ROOT_ANIMAL_ID CHAR(17)
        
       )with replace
       on commit preserve rows;
@@ -69,6 +80,38 @@ BEGIN
       )with replace
       on commit preserve rows;
       
+      
+      	
+   INSERT INTO SESSION.TMP_INPUT
+	(  INT_ID,
+	   ANIM_KEY,
+	   SPECIES_CODE,
+	   SEX_CODE 
+   )
+    
+   VALUES (
+	   @INT_ID,
+	   @ANIM_KEY,
+	   @SPECIES_CODE,
+	   @SEX_CODE 
+   ); 
+--	
+--	 --  Test performance on 2000 animals: note: need to revisit performance issue
+--   INSERT INTO SESSION.TMP_INPUT
+--	(  INT_ID,
+--	   ANIM_KEY,
+--	   SPECIES_CODE,
+--	   SEX_CODE 
+--   )
+--   SELECT INT_ID,
+--		ANIM_KEY,
+--		SPECIES_CODE,
+--		SEX_CODE 
+--   FROM TEST_2000_ANIMALS 
+--   ; 
+	
+	
+	 
       --========================== Get first generation for export pedigree ==========================
 INSERT INTO SESSION.animal_0 					
 	SELECT a.ANIM_KEY
@@ -76,14 +119,16 @@ INSERT INTO SESSION.animal_0
 	    ,a.SPECIES_CODE
 		,a.SIRE_KEY
 		,a.DAM_KEY
-		,0  
-		,a.ANIM_KEY  				
-	FROM  PEDIGREE_TABLE  a
-	WHERE ANIM_KEY = @ANIM_KEY AND SPECIES_CODE = @SPECIES_CODE
+		,0   
+		,t.INT_ID				
+	FROM  SESSION.TMP_INPUT t
+	INNER JOIN PEDIGREE_TABLE  a
+	ON t.ANIM_KEY = a.ANIM_KEY
+	AND t.SPECIES_CODE = a.SPECIES_CODE 
 	with UR;
 	
   
-	 call usp_Get_Animal_Pedigree();
+	  call usp_Get_Animal_Pedigree();
 	 
 	 
 	 INSERT INTO SESSION.tmpPedGenotype(ANIM_KEY)
@@ -105,24 +150,36 @@ INSERT INTO SESSION.animal_0
 	    aID.SOURCE_CODE 
  FROM
  	(
- 	SELECT DISTINCT ANIM_KEY,ROOT_ANIM_KEY FROM SESSION.animals
+ 	SELECT DISTINCT ANIM_KEY,SPECIES_CODE FROM SESSION.animals
  	UNION
- 	SELECT DISTINCT SIRE_KEY,ROOT_ANIM_KEY FROM SESSION.animals
+ 	SELECT DISTINCT SIRE_KEY,SPECIES_CODE FROM SESSION.animals
  	UNION
- 	SELECT DISTINCT DAM_KEY,ROOT_ANIM_KEY FROM SESSION.animals
+ 	SELECT DISTINCT DAM_KEY,SPECIES_CODE FROM SESSION.animals
  	) t
-	INNER JOIN ID_XREF_TABLE aID ON aID.ANIM_KEY = t.ANIM_KEY and aID.PREFERRED_CODE=1  AND aID.SPECIES_CODE = @SPECIES_CODE
+	INNER JOIN ID_XREF_TABLE aID ON aID.ANIM_KEY = t.ANIM_KEY and aID.PREFERRED_CODE=1  AND aID.SPECIES_CODE = t.SPECIES_CODE
 	with UR
 	;
+ 
+   BEGIN
+    
+    DECLARE cur01 CURSOR WITH RETURN FOR
+     select * from  SESSION.animal_0 ;	
+     OPEN cur01;
+     END; 
+     
+      BEGIN
+    
+    DECLARE cur012 CURSOR WITH RETURN FOR
+     select * from  SESSION.animals ;	
+     OPEN cur012;
+     END; 
  
  
     BEGIN
     
     DECLARE cur0 CURSOR WITH RETURN FOR
-	SELECT  @INT_ID AS ROOT_ANIMAL_ID, 
-				 case when t.GENERATION =0 then @INT_ID
-				      else aID.INT_ID
-				 end as ANIMAL_ID, 
+	SELECT     t.ROOT_ANIMAL_ID, 
+                aID.INT_ID as ANIMAL_ID,
 				 sID.INT_ID as SIRE_INT_ID,
 				 dID.INT_ID as DAM_INT_ID,
 				 t.SEX_CODE,
