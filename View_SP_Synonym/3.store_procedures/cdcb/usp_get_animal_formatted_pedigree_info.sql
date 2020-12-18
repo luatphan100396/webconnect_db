@@ -18,6 +18,8 @@ P1: BEGIN
 	--DECLARE VARIABLES
 	DECLARE DEFAULT_DATE DATE;
 	DECLARE PREFERRED_INT_ID CHAR(17);
+	
+	
 	--DECLARE TEMPORARY TABLE
         DECLARE GLOBAL TEMPORARY TABLE SESSION.TMP_INPUT
 		(
@@ -29,6 +31,7 @@ P1: BEGIN
 
     DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpAnimalLists_Alias --DROP TABLE SESSION.TmpAnimalLists_Alias
 	(
+		 
 		ANIM_KEY int,
 		INT_ID CHAR(17),  
 		MODIFY_DATE VARCHAR(10),
@@ -38,6 +41,10 @@ P1: BEGIN
 		PREFERRED_CODE char(1)
 		 
 	)WITH REPLACE  ON COMMIT PRESERVE ROWS;
+
+		  
+		 
+		 
 	---SET VARIABLES
 	SET DEFAULT_DATE = (select STRING_VALUE FROM dbo.constants where name ='Default_Date_Value' LIMIT 1 with UR);
 
@@ -71,6 +78,8 @@ P1: BEGIN
 --		SEX_CODE
 --   FROM TEST_2000_ANIMALS 
 --   ; 
+	  
+
 	INSERT INTO SESSION.TmpAnimalLists_Alias
 	( 
 	ANIM_KEY,
@@ -95,13 +104,13 @@ P1: BEGIN
 		  ON t.ANIM_KEY = id.ANIM_KEY
 		  AND t.SEX_CODE = id.SEX_CODE
 		  AND t.SPECIES_CODE = id.SPECIES_CODE
-		  WITH UR
 		 ; 
+		  
+
 	BEGIN
 		DECLARE cursor1  CURSOR WITH RETURN for
 			   SELECT 
-				 t.INT_ID AS ANIMAL_ID,
-				 pre_id.INT_ID AS ALIAS_ID
+				 t.INT_ID AS ANIMAL_ID
 				 ,ped.SEX_CODE AS SEX
 				 ,sire.INT_ID AS SIRE_ID
 				 ,dam.INT_ID AS DAM_ID
@@ -150,5 +159,6 @@ P1: BEGIN
 			AND ref_src.TYPE = 'SOURCE_CODE'
 			with ur;
 		OPEN cursor1;
+		  
 	END;
 END P1 
