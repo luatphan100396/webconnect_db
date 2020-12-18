@@ -16,9 +16,7 @@ CREATE OR REPLACE PROCEDURE usp_get_animal_ids_for_search
 	DYNAMIC RESULT SETS 3
 	LANGUAGE SQL
 BEGIN
-	  
-  
-	  
+	    
 	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpInputs
 	(	
 		INPUT_VALUE VARCHAR(128),
@@ -72,6 +70,7 @@ BEGIN
 	 ;
 	 
 	 
+	 --Search Animal by Herd + Cow Control Number
 	IF @FILTER_TYPE ='HERD_CTRL_NUM' THEN
 		INSERT INTO SESSION.TmpHerd_CtrlNum_List
 		(
