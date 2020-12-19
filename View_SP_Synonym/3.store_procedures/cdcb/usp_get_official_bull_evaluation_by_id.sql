@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID 
+CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID_test
 --========================================================================================================
 --Author: Linh Pham
 --Created Date: 2020-16-12
@@ -42,7 +42,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
 		bv.*, 
 		CAST(NULL AS CHAR(17)) AS ROOT_INT_ID,
 		CAST(NULL AS INT) AS ROOT_ANIM_KEY 
-		FROM BULL_EVL_TABLE bv
+		FROM BULL_EVL_TABLE_DECODE bv
 	
 	) DEFINITION ONLY 
 	WITH REPLACE ON COMMIT PRESERVE ROWS;
@@ -131,83 +131,201 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
 		SELECT bv.*,
 		inp.INT_ID AS ROOT_INT_ID,
 		inp.ANIM_KEY AS ROOT_ANIM_KEY
-	FROM BULL_EVL_TABLE bv
+	FROM BULL_EVL_TABLE_DECODE bv
 	INNER JOIN SESSION.TMP_INPUT inp
 		ON bv.ANIM_KEY = inp.ANIM_KEY
-		and bv.EVAL_PDATE = v_EVAL_PDATE
-		and official_ind ='Y' 
+		and bv.EVAL_PDATE = v_EVAL_PDATE 
 	with UR; 
-		 
-	 
-       -- Get MERIT bv
-	    INSERT INTO SESSION.TmpAnimalLists_BV_Merit 
-	    (
-	            ROOT_INT_ID,
-	            TRAIT,
-	            PTA,
-	            REL,
-	            RELPA
-	    ) 
-	    SELECT 
-	            tbv.ROOT_INT_ID, 
-	            trait.TRAIT,
-	            str2int(substring(tbv.INDEX_AMT_SEG,TRAIT_FIRST_CHAR_2_BYTE,2)) PTA,
-	            
-	            tbv.NM_REL_PCT as NM_REL_PCT, 
-	            case  when trait.TRAIT ='NM$' then tbv.PA_NM_REL_PCT
-	                  else null
-	            end as PA_NM_REL_PCT
 	
-	        FROM SESSION.tmp_BULL_EVL_TABLE tbv 
-            inner join
-            (
-                select INDEX_SHORT_NAME AS TRAIT,   
-                INDEX_NUM,
-                ((INDEX_NUM-1)*2)+1 AS TRAIT_FIRST_CHAR_2_BYTE 
-                from index_table  with UR
-            ) trait
-            ON trait.INDEX_NUM <=tbv.INDEX_CNT with UR;
-        
-        ---
-        INSERT INTO SESSION.TmpAnimalLists_BV_PTA 
-        (
-                ROOT_INT_ID,
-                TRAIT,
-                PTA,
-                REL,
-                DAUS,
-                HERDS,
-                SRC,
-                PA,
-                RELPA
-        ) 
-        SELECT 
-                tbv.ROOT_INT_ID, 
-                trait.TRAIT, 
-                str2int(substring(tbv.TRAIT_PTA_QTY_SEG,TRAIT_FIRST_CHAR_2_BYTE,2)) AS  PTA,
-                str2int(substring(tbv.TRAIT_PTA_REL_PCT_SEG,TRAIT_FIRST_CHAR_2_BYTE,2))  AS  REL_PTA,
-                str2int(substring(tbv.TRAIT_DAU_QTY_SEG,TRAIT_FIRST_CHAR_4_BYTE,4)) AS DAUS,
-                str2int(substring(tbv.TRAIT_HERDS_QTY_SEG,TRAIT_FIRST_CHAR_4_BYTE,4)) as HERDS,
-                case when trait.TRAIT_NUM <=3 and substring(tbv.TRAIT_USABILITY_CODE_SEG,TRAIT_FIRST_CHAR_1_BYTE,1) between '1' and '8' then 'M'
-                     when trait.TRAIT_NUM <=3 and not(substring(tbv.TRAIT_USABILITY_CODE_SEG,TRAIT_FIRST_CHAR_1_BYTE,1) between '1' and '8') then ''
-                     when trait.TRAIT_NUM >3 and substring(tbv.TRAIT_USABILITY_CODE_SEG,TRAIT_FIRST_CHAR_1_BYTE,1) ='2' then 'M'
-                     when trait.TRAIT_NUM >3 and substring(tbv.TRAIT_USABILITY_CODE_SEG,TRAIT_FIRST_CHAR_1_BYTE,1) <> '2' then ''
-                     else null
-                end as  SOURCE_CODE, 
-                str2int(substring(tbv.TRAIT_PA_QTY_SEG,TRAIT_FIRST_CHAR_2_BYTE,2)) as PA, 
-                str2int(substring(tbv.TRAIT_PA_REL_PCT_SEG,TRAIT_FIRST_CHAR_2_BYTE,2))  as REL_PA 
-        FROM  SESSION.tmp_BULL_EVL_TABLE tbv
-        INNER JOIN
-                   (
-                        select TRAIT_SHORT_NAME AS TRAIT, 
-                        TRAIT_NUM,
-                        ((TRAIT_NUM-1)*4)+1 AS TRAIT_FIRST_CHAR_4_BYTE,  
-                        ((TRAIT_NUM-1)*2)+1 AS TRAIT_FIRST_CHAR_2_BYTE,
-                        ((TRAIT_NUM-1)*1)+1 AS TRAIT_FIRST_CHAR_1_BYTE
-                        from TRAIT_TABLE
-                        where publish_pdate >0 and publish_pdate < days(now())
-                ) trait 
-         on trait.TRAIT_NUM <=tbv.TRAIT_CNT with UR;
+		     -- Get merit data
+	    INSERT INTO SESSION.TmpAnimalLists_BV_Merit 
+		(
+			ROOT_INT_ID,
+			TRAIT,
+			PTA,
+			REL,
+			RELPA
+		)
+		SELECT 
+			cEvl.ROOT_INT_ID
+			,iTable.INDEX_SHORT_NAME AS TRAIT
+			,CASE WHEN iTable.INDEX_SHORT_NAME = 'NM$' THEN cEvl.NM_AMT
+				  WHEN iTable.INDEX_SHORT_NAME = 'FM$' THEN cEvl.FM_AMT
+				  WHEN iTable.INDEX_SHORT_NAME = 'CM$' THEN cEvl.CM_AMT
+				  WHEN iTable.INDEX_SHORT_NAME = 'GM$' THEN cEvl.GM_AMT
+				  WHEN iTable.INDEX_SHORT_NAME = 'PA$' THEN cEvl.PA_NM_AMT
+				  ELSE NULL
+			 END AS PTA
+			,cast(cEvl.NM_REL_PCT as varchar(5)) as NM_REL_PCT
+		 	,case  when iTable.INDEX_SHORT_NAME ='NM$' then cast(cEvl.PA_NM_REL_PCT as varchar(5))
+				  else null
+		 	 end as PA_NM_REL_PCT
+			
+		FROM SESSION.tmp_BULL_EVL_TABLE cEvl,
+			 INDEX_TABLE iTable 
+		with UR;	 
+	  
+	  
+	  
+			
+		 -- Get PTA from COW_EVL_TABLE
+		 INSERT INTO SESSION.TmpAnimalLists_BV_PTA 
+		(
+			ROOT_INT_ID,
+			TRAIT,
+			PTA,
+			REL,
+			DAUS,
+			HERDS,
+			SRC,
+			PA,
+			RELPA
+		) 
+		SELECT 
+			tCEvl.ROOT_INT_ID
+			,trait.TRAIT_SHORT_NAME
+			,CASE WHEN TRAIT_SHORT_NAME = 'Mlk' THEN tCEvl.PTA_MLK_QTY
+				  WHEN TRAIT_SHORT_NAME = 'Fat' THEN tCEvl.PTA_FAT_QTY
+				  WHEN TRAIT_SHORT_NAME = 'Pro' THEN tCEvl.PTA_PRO_QTY
+				  WHEN TRAIT_SHORT_NAME = 'CCR' THEN tCEvl.PTA_CCR_QTY
+				  WHEN TRAIT_SHORT_NAME = 'DPR' THEN tCEvl.PTA_DPR_QTY
+				  WHEN TRAIT_SHORT_NAME = 'HCR' THEN tCEvl.PTA_HCR_QTY
+				  WHEN TRAIT_SHORT_NAME = 'LIV' THEN tCEvl.PTA_LIV_QTY
+				  WHEN TRAIT_SHORT_NAME = 'PL' THEN tCEvl.PTA_PL_QTY
+				  WHEN TRAIT_SHORT_NAME = 'SCS' THEN tCEvl.PTA_SCS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'Fat%' THEN tCEvl.PTA_FAT_PCT
+				  WHEN TRAIT_SHORT_NAME = 'Pro%' THEN tCEvl.PTA_PRO_PCT
+				  WHEN TRAIT_SHORT_NAME = 'GL' THEN tCEvl.PTA_GL_QTY
+				  WHEN TRAIT_SHORT_NAME = 'MFV' THEN tCEvl.PTA_MFV_QTY
+				  WHEN TRAIT_SHORT_NAME = 'DAB' THEN tCEvl.PTA_DAB_QTY
+				  WHEN TRAIT_SHORT_NAME = 'KET' THEN tCEvl.PTA_KET_QTY
+				  WHEN TRAIT_SHORT_NAME = 'MAS' THEN tCEvl.PTA_MAS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'MET' THEN tCEvl.PTA_MET_QTY
+				  WHEN TRAIT_SHORT_NAME = 'RPL' THEN tCEvl.PTA_RPL_QTY
+				  WHEN TRAIT_SHORT_NAME = 'EFC' THEN tCEvl.PTA_EFC_QTY
+				  ELSE NULL
+			 END AS PTA
+			,CASE WHEN TRAIT_SHORT_NAME = 'Mlk' THEN tCEvl.PTA_MLK_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'Fat' THEN tCEvl.PTA_FAT_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'Pro' THEN tCEvl.PTA_PRO_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'CCR' THEN tCEvl.PTA_CCR_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'DPR' THEN tCEvl.PTA_DPR_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'HCR' THEN tCEvl.PTA_HCR_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'LIV' THEN tCEvl.PTA_LIV_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'PL' THEN tCEvl.PTA_PL_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'SCS' THEN tCEvl.PTA_SCS_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'GL' THEN tCEvl.PTA_GL_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'MFV' THEN tCEvl.PTA_MFV_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'DAB' THEN tCEvl.PTA_DAB_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'KET' THEN tCEvl.PTA_KET_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'MAS' THEN tCEvl.PTA_MAS_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'MET' THEN tCEvl.PTA_MET_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'RPL' THEN tCEvl.PTA_RPL_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'EFC' THEN tCEvl.PTA_EFC_REL_PCT
+				  ELSE NULL
+			 END AS REL_PTA
+			,CASE WHEN TRAIT_SHORT_NAME = 'Mlk' THEN tCEvl.MLK_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'Fat' THEN tCEvl.FAT_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'Pro' THEN tCEvl.PRO_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'CCR' THEN tCEvl.CCR_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'DPR' THEN tCEvl.DPR_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'HCR' THEN tCEvl.HCR_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'LIV' THEN tCEvl.LIV_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'PL' THEN tCEvl.PL_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'SCS' THEN tCEvl.SCS_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'GL' THEN tCEvl.GL_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'MFV' THEN tCEvl.MFV_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'DAB' THEN tCEvl.DAB_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'KET' THEN tCEvl.KET_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'MAS' THEN tCEvl.MAS_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'MET' THEN tCEvl.MET_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'RPL' THEN tCEvl.RPL_DAUS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'EFC' THEN tCEvl.EFC_DAUS_QTY
+				  ELSE NULL
+			 END  AS DAUS
+			,CASE WHEN TRAIT_SHORT_NAME = 'Mlk' THEN tCEvl.MLK_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'Fat' THEN tCEvl.FAT_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'Pro' THEN tCEvl.PRO_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'CCR' THEN tCEvl.CCR_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'DPR' THEN tCEvl.DPR_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'HCR' THEN tCEvl.HCR_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'LIV' THEN tCEvl.LIV_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'PL' THEN tCEvl.PL_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'SCS' THEN tCEvl.SCS_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'GL' THEN tCEvl.GL_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'MFV' THEN tCEvl.MFV_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'DAB' THEN tCEvl.DAB_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'KET' THEN tCEvl.KET_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'MAS' THEN tCEvl.MAS_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'MET' THEN tCEvl.MET_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'RPL' THEN tCEvl.RPL_HERDS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'EFC' THEN tCEvl.EFC_HERDS_QTY
+				  ELSE NULL
+			 END AS HERDS
+			,CASE WHEN TRAIT_SHORT_NAME = 'Mlk' THEN tCEvl.SRC_MLK
+				  WHEN TRAIT_SHORT_NAME = 'Fat' THEN tCEvl.SRC_FAT
+				  WHEN TRAIT_SHORT_NAME = 'Pro' THEN tCEvl.SRC_PRO
+				  WHEN TRAIT_SHORT_NAME = 'CCR' THEN tCEvl.SRC_CCR
+				  WHEN TRAIT_SHORT_NAME = 'DPR' THEN tCEvl.SRC_DPR
+				  WHEN TRAIT_SHORT_NAME = 'HCR' THEN tCEvl.SRC_HCR
+				  WHEN TRAIT_SHORT_NAME = 'LIV' THEN tCEvl.SRC_LIV
+				  WHEN TRAIT_SHORT_NAME = 'PL' THEN tCEvl.SRC_PL
+				  WHEN TRAIT_SHORT_NAME = 'SCS' THEN tCEvl.SRC_SCS
+				  WHEN TRAIT_SHORT_NAME = 'GL' THEN tCEvl.SRC_GL
+				  WHEN TRAIT_SHORT_NAME = 'MFV' THEN tCEvl.SRC_MFV
+				  WHEN TRAIT_SHORT_NAME = 'DAB' THEN tCEvl.SRC_DAB
+				  WHEN TRAIT_SHORT_NAME = 'KET' THEN tCEvl.SRC_KET
+				  WHEN TRAIT_SHORT_NAME = 'MAS' THEN tCEvl.SRC_MAS
+				  WHEN TRAIT_SHORT_NAME = 'MET' THEN tCEvl.SRC_MET
+				  WHEN TRAIT_SHORT_NAME = 'RPL' THEN tCEvl.SRC_RPL
+				  WHEN TRAIT_SHORT_NAME = 'EFC' THEN tCEvl.SRC_EFC
+				  ELSE NULL
+			 END AS SOURCE_CODE
+			,CASE WHEN TRAIT_SHORT_NAME = 'Mlk' THEN tCEvl.PA_MLK_QTY
+				  WHEN TRAIT_SHORT_NAME = 'Fat' THEN tCEvl.PA_FAT_QTY
+				  WHEN TRAIT_SHORT_NAME = 'Pro' THEN tCEvl.PA_PRO_QTY
+				  WHEN TRAIT_SHORT_NAME = 'CCR' THEN tCEvl.PA_CCR_QTY
+				  WHEN TRAIT_SHORT_NAME = 'DPR' THEN tCEvl.PA_DPR_QTY
+				  WHEN TRAIT_SHORT_NAME = 'HCR' THEN tCEvl.PA_HCR_QTY
+				  WHEN TRAIT_SHORT_NAME = 'LIV' THEN tCEvl.PA_LIV_QTY
+				  WHEN TRAIT_SHORT_NAME = 'PL' THEN tCEvl.PA_PL_QTY
+				  WHEN TRAIT_SHORT_NAME = 'SCS' THEN tCEvl.PA_SCS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'GL' THEN tCEvl.PA_GL_QTY
+				  WHEN TRAIT_SHORT_NAME = 'MFV' THEN tCEvl.PA_MFV_QTY
+				  WHEN TRAIT_SHORT_NAME = 'DAB' THEN tCEvl.PA_DAB_QTY
+				  WHEN TRAIT_SHORT_NAME = 'KET' THEN tCEvl.PA_KET_QTY
+				  WHEN TRAIT_SHORT_NAME = 'MAS' THEN tCEvl.PA_MAS_QTY
+				  WHEN TRAIT_SHORT_NAME = 'MET' THEN tCEvl.PA_MET_QTY
+				  WHEN TRAIT_SHORT_NAME = 'RPL' THEN tCEvl.PA_RPL_QTY
+				  WHEN TRAIT_SHORT_NAME = 'EFC' THEN tCEvl.PA_EFC_QTY
+				  ELSE NULL
+			 END AS PA
+			,CASE WHEN TRAIT_SHORT_NAME = 'Mlk' THEN tCEvl.PA_MLK_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'Fat' THEN tCEvl.PA_FAT_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'Pro' THEN tCEvl.PA_PRO_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'CCR' THEN tCEvl.PA_CCR_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'DPR' THEN tCEvl.PA_DPR_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'HCR' THEN tCEvl.PA_HCR_REL_PCT 
+				  WHEN TRAIT_SHORT_NAME = 'LIV' THEN tCEvl.PA_LIV_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'PL' THEN tCEvl.PA_PL_REL_PCT 
+				  WHEN TRAIT_SHORT_NAME = 'SCS' THEN tCEvl.PA_SCS_REL_PCT 
+				  WHEN TRAIT_SHORT_NAME = 'GL' THEN tCEvl.PA_GL_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'MFV' THEN tCEvl.PA_MFV_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'DAB' THEN tCEvl.PA_DAB_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'KET' THEN tCEvl.PA_KET_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'MAS' THEN tCEvl.PA_MAS_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'MET' THEN tCEvl.PA_MET_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'RPL' THEN tCEvl.PA_RPL_REL_PCT
+				  WHEN TRAIT_SHORT_NAME = 'EFC' THEN tCEvl.PA_EFC_REL_PCT
+				  ELSE NULL
+			 END AS REL_PA
+		FROM SESSION.tmp_BULL_EVL_TABLE tCEvl
+		CROSS JOIN ( SELECT TRAIT_SHORT_NAME 
+		             FROM TRAIT_TABLE
+				     WHERE publish_pdate >0 and publish_pdate < days(now())
+				     with UR
+					)trait with UR;
+					 
                         
          -- Insert data for Fat% and Pro%
         INSERT INTO SESSION.TmpAnimalLists_BV_PTA 
@@ -228,36 +346,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
                 tbv.PTA_PRO_PCT  AS  PTA 
         FROM  SESSION.tmp_BULL_EVL_TABLE tbv
         with UR;
-        
-        
-        -- Adjust decimal for PTA, PA (for bull) 
-            MERGE INTO SESSION.TmpAnimalLists_BV_PTA as A
-            USING
-            (
-	            SELECT tmp.ROOT_INT_ID, tmp.TRAIT, traits.DECIMAL_ADJUST
-	            FROM SESSION.TmpAnimalLists_BV_PTA tmp
-	            JOIN ( 
-			            select  TRAIT, 
-			                    cast(DECIMAL_ADJUST as float) DECIMAL_ADJUST
-			            from table(fn_Get_List_traits()) 
-            )  traits on tmp.TRAIT = traits.TRAIT with UR
-            )AS B
-            ON A.ROOT_INT_ID = B.ROOT_INT_ID  AND A.TRAIT = B.TRAIT
-            WHEN MATCHED THEN
-            UPDATE SET 
-	            PTA = PTA*DECIMAL_ADJUST,
-	            PA = PA*DECIMAL_ADJUST,
-	            RELPA = RELPA/10.0,
-	            REL = REL/10.0,
-	            DAUS = case when A.trait in ('Fat%', 'Pro%') then null 
-	                    else coalesce(DAUS,0)
-	                    end,
-	            HERDS = case when A.trait in ('Fat%', 'Pro%') then null 
-	                    else coalesce(HERDS,0) 
-	                    end 
-            ;
-                
-            
+
             -- Get bull dtrs
             INSERT INTO SESSION.TmpAnimalLists_BV_country 
             (
@@ -283,7 +372,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
                     DAU_SB_DAUS
             ) 
             SELECT 
-                    tbv.ROOT_INT_ID AS ROOT_INT_ID,
+                    tbv.INT_ID AS ROOT_INT_ID,
                     bv.COUNTRY_CODE,
                     bv.MF_HERDS_QTY,
                     bv.MF_DAU_QTY,
@@ -304,7 +393,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
                     bv.DSB_HERDS_QTY,
                     bv.DSB_DAU_QTY      
             FROM  ITB_COUNTRY_TABLE bv
-            LEFT JOIN  SESSION.tmp_BULL_EVL_TABLE tbv
+            INNER JOIN  SESSION.TMP_INPUT tbv
                ON bv.ANIM_KEY = tbv.ANIM_KEY and bv.EVAL_PDATE = v_EVAL_PDATE
             with UR; 	
              
@@ -337,7 +426,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
    
         
         
-     -- Update PA amount into PA filed of NM$ 
+      -- Update PA amount into PA filed of NM$ 
 	 MERGE INTO SESSION.TmpAnimalLists_BV_Merit as A
 	 using
 	 (
@@ -355,17 +444,16 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
 	 
 	 DELETE FROM SESSION.TmpAnimalLists_BV_Merit WHERE TRAIT = 'PA$';
 	
-	 
         
- 	-- Get animal information
+  	-- Get animal information
   
 	     begin
 		 	DECLARE cursor1 CURSOR WITH RETURN for 
 		 	SELECT 
 				animEvl.ROOT_INT_ID AS ROOT_ANIMAL_ID 
 				,animEvl.BULL_ID AS PREFERED_ID
-				,animEvl.EVAL_BREED_CODE as EVAL_BREED
-			 	,VARCHAR_FORMAT(DEFAULT_DATE + animEvl.EVAL_PDATE,'Month YYYY') AS RUN_NAME
+				,coalesce(animEvl.EVAL_BREED_CODE,'N/A') as EVAL_BREED
+			 	,coalesce(VARCHAR_FORMAT(DEFAULT_DATE + animEvl.EVAL_PDATE,'Month YYYY'),'N/A') AS RUN_NAME
 				,animEvl.PED_COMP_PCT AS  PED_COMP
 				,case when length(animEvl.NAAB10_SEG) >=10 then substring(animEvl.NAAB10_SEG,1,10)
 				      else null 
@@ -381,11 +469,11 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
 				,animEvl.DAM_ID AS DAM_INT_ID
 				,VARCHAR_FORMAT(DEFAULT_DATE + animEvl.BIRTH_PDATE,'YYYY-MM-DD') AS BIRTH_DATE
 				,animEvl.INTERNATIONAL_ID_IND 
-				,anim_name.ANIM_NAME AS LONG_NAME 
-				,ai.BULL_SHORT_NAME AS SHORT_NAME
-				,animEvl.REGIS_STATUS_CODE
-				,recessive.RECESSIVE_CODE_SEG
-				,animEvl.SOURCE_CODE
+				,trim(anim_name.ANIM_NAME) AS LONG_NAME 
+				,trim(ai.BULL_SHORT_NAME) AS SHORT_NAME
+				,trim(animEvl.REGIS_STATUS_CODE) AS  REG
+				,trim(ressive.RECESSIVE_CODE_SEG) AS RECESSIVES 
+				,animEvl.SOURCE_CODE AS SRC
 				,animEvl.HERD_WITH_MOST_DAU
 				,animEvl.MOST_DAU_HERD_QTY
 				FROM SESSION.tmp_BULL_EVL_TABLE animEvl 
@@ -393,9 +481,9 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
 					ON  anim_name.INT_ID = animEvl.BULL_ID
 					AND anim_name.SPECIES_CODE ='0'
 					AND anim_name.SEX_CODE ='M'
-				LEFT JOIN RECESSIVES_TABLE recessive 
-				   ON recessive.SPECIES_CODE='0'
-				   AND recessive.ANIM_KEY = animEvl.ROOT_ANIM_KEY
+				LEFT JOIN RECESSIVES_TABLE ressive 
+				   ON ressive.SPECIES_CODE='0'
+				   AND ressive.ANIM_KEY = animEvl.ROOT_ANIM_KEY
 				LEFT JOIN AI_CODES_TABLE ai
 				  ON ai.ANIM_KEY = animEvl.ROOT_ANIM_KEY 
 			    with UR 
@@ -406,7 +494,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
 	  
 	   
      
-	   --DS5: Get animal BV Merit
+ 	   --DS5: Get animal BV Merit
 	     begin
 		 	DECLARE cursor2 CURSOR WITH RETURN for
 		 		 
@@ -445,7 +533,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
 		 	OPEN cursor3;
 	   end;
 	   
-	   --DS7: Get animal BV PIA
+    --DS7: Get animal BV PIA
 	     begin
 	      
 		 	DECLARE cursor4 CURSOR WITH RETURN for
@@ -506,9 +594,8 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
 	   end;
 	   
 	   
-	 
-	   
-	   --DS9: Get animal BV dtrs
+ 	   
+ 	   --DS9: Get animal BV dtrs
 	     begin
 		 	DECLARE cursor6 CURSOR WITH RETURN for
 		 		
@@ -537,7 +624,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
 		  
 		 	OPEN cursor6;
 	   end;
-	   
+    
 	    begin
 		 	DECLARE cursor7 CURSOR WITH RETURN for 
 		 	SELECT  
