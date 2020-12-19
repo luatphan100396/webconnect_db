@@ -27,7 +27,7 @@ BEGIN
 	         INTO v_TEMPLATE_DETAIL, v_PREFIX_OUTPUT_NAME 
 	  FROM OUTPUT_FILE_TEMPLATE_TABLE WHERE NAME = @template_name AND TYPE ='JSON' LIMIT 1;
 	  
-	  SET @EXPORT_FILE_NAME = v_PREFIX_OUTPUT_NAME || REPLACE(REPLACE(REPLACE(CAST(current timestamp AS VARCHAR(26)), '.', ''), ':' , ''), '-', ''); 
+	  SET @EXPORT_FILE_NAME = v_PREFIX_OUTPUT_NAME ||'_' || REPLACE(REPLACE(REPLACE(CAST(current timestamp AS VARCHAR(26)), '.', ''), ':' , ''), '-', ''); 
 	  SET @EXPORT_FILE_NAME = EXPORT_PATH || '/' || @EXPORT_FILE_NAME || '.json';
 	   
       SET v_TEMPLATE_DETAIL= REPLACE(REPLACE(v_TEMPLATE_DETAIL,'<','''||trim(coalesce('),'>',',''''))||''');

@@ -25,7 +25,7 @@ BEGIN
 	DECLARE i						SMALLINT DEFAULT 1; 
 	
 	DECLARE EXPORT_FILE_NAME VARCHAR(300);
-	DECLARE TEMPLATE_NAME			VARCHAR(200) DEFAULT 'ANIM_PARENTAGE_VERIF_RECORD'; 
+	DECLARE TEMPLATE_NAME			VARCHAR(200) ; 
 	DECLARE LAST_ROW_ID 		    INT;
 	
 	DECLARE sql_query				VARCHAR(30000);
@@ -211,42 +211,42 @@ BEGIN
 	
 	) WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
-	
---   INSERT INTO SESSION.TMP_INPUT
---	(  INT_ID,
---	   ANIM_KEY,
---	   SPECIES_CODE,
---	   SEX_CODE,
---	   INT_ID_18
---   )
---    
---   VALUES (
---	   @INT_ID,
---	   @ANIM_KEY,
---	   @SPECIES_CODE,
---	   @SEX_CODE,
---	   LEFT(@INT_ID,5) ||@SEX_CODE|| RIGHT(@INT_ID,12)
---   ); 
 --	
-	
-	
-  --  Test performance on 2000 animals
    INSERT INTO SESSION.TMP_INPUT
 	(  INT_ID,
 	   ANIM_KEY,
 	   SPECIES_CODE,
 	   SEX_CODE,
-	   INT_ID_18,
-	   ORDER
+	   INT_ID_18
    )
-   SELECT INT_ID,
-		ANIM_KEY,
-		SPECIES_CODE,
-		SEX_CODE,
-		LEFT(INT_ID,5) ||SEX_CODE|| RIGHT(INT_ID,12),
-		ORDER
-   FROM TEST_2000_ANIMALS 
-   ; 
+    
+   VALUES (
+	   @INT_ID,
+	   @ANIM_KEY,
+	   @SPECIES_CODE,
+	   @SEX_CODE,
+	   LEFT(@INT_ID,5) ||@SEX_CODE|| RIGHT(@INT_ID,12)
+   ); 
+	
+	
+	
+  --  Test performance on 2000 animals
+--   INSERT INTO SESSION.TMP_INPUT
+--	(  INT_ID,
+--	   ANIM_KEY,
+--	   SPECIES_CODE,
+--	   SEX_CODE,
+--	   INT_ID_18,
+--	   ORDER
+--   )
+--   SELECT INT_ID,
+--		ANIM_KEY,
+--		SPECIES_CODE,
+--		SEX_CODE,
+--		LEFT(INT_ID,5) ||SEX_CODE|| RIGHT(INT_ID,12),
+--		ORDER
+--   FROM TEST_2000_ANIMALS 
+--   ; 
 	
 	
 	SET v_DEFAULT_DATE = (SELECT STRING_VALUE FROM dbo.constants WHERE NAME ='Default_Date_Value' LIMIT 1);
@@ -779,43 +779,7 @@ Wrong breed if:
 	 ;
   
   /*Retrive output*/ 
-  
-  --Insert header
-  
---	INSERT INTO SESSION.TMP_RESULT
---	VALUES
---	(
---		'ANIMAL_ID',
---		'ANIMAL_SOURCE_CODE',
---		'SAMPLE_ID',
---		'REQUESTER_ID',
---		'CHIP_TYPE',
---		'SIRE_ID',
---		'SIRE_SOURCE_CODE',
---		'SIRE_STATUS_CODE',
---		'SUGGESTED_SIRE',
---		'DAM_ID',
---		'DAM_SOURCE_CODE',
---		'DAM_STATUS_CODE',
---		'SUGGESTED_DAM',
---		'MGS_ID',
---		'MGS_STATUS_CODE',
---		'MGS_SUGG_1',
---		'MGS_STAT_1',
---		'MGS_SUGG_2',
---		'MGS_STAT_2',
---		'MGS_SUGG_3',
---		'MGS_STAT_3',
---		'MGS_SUGG_4',
---		'MGS_STAT_4',
---		'USABILITY_INDICATOR',
---		'PARENTAGE_INDICATOR',
---		'FEE_CODE',
---		'DATE',
---		'GETS_EVAL',
---		999999
---	)
---	;
+   
 	
  --Insert result	
  INSERT INTO SESSION.TMP_RESULT
@@ -904,65 +868,26 @@ Wrong breed if:
 	; 
 	 
 	 SET LAST_ROW_ID = (SELECT MAX(ROW_ID) FROM SESSION.TMP_RESULT); 
---	  
---	/*Export csv file*/
---    SET EXPORT_PATH = (SELECT STRING_VALUE FROM dbo.CONSTANTS WHERE NAME = 'Export_Folder');
---	
---	SET EXPORT_FILE_NAME = 'Parentage_Ver_Records_' || REPLACE(REPLACE(REPLACE(CAST(current timestamp AS VARCHAR(26)), '.', ''), ':' , ''), '-', '');
---	
---	SET EXPORT_FILE_NAME = EXPORT_PATH || '/' || EXPORT_FILE_NAME || '.csv';
---	
---	SET sql_query = 'SELECT	ANIMAL_ID,
---					ANIMAL_SOURCE_CODE,
---					SAMPLE_ID,
---					REQUESTER_ID,
---					CHIP_TYPE,
---					SIRE_ID,
---					SIRE_SOURCE_CODE,
---					SIRE_STATUS_CODE,
---					SUGGESTED_SIRE,
---					DAM_ID,
---					DAM_SOURCE_CODE,
---					DAM_STATUS_CODE,
---					SUGGESTED_DAM,
---					MGS_ID,
---					MGS_STATUS_CODE,
---					MGS_SUGG_1,
---					MGS_STAT_1,
---					MGS_SUGG_2,
---					MGS_STAT_2,
---					MGS_SUGG_3,
---					MGS_STAT_3,
---					MGS_SUGG_4,
---					MGS_STAT_4,
---					USABILITY_INDICATOR,
---					PARENTAGE_INDICATOR,
---					FEE_CODE,
---					DATE,
---					GETS_EVAL
---			FROM SESSION.TMP_RESULT
---			ORDER BY ORDER DESC ';
---	
--- 	CALL SYSPROC.ADMIN_CMD( 'export to '||EXPORT_FILE_NAME||' of DEL modified by NOCHARDEL 
---  	  			 '||sql_query);
---	
---	BEGIN
---		DECLARE CUR CURSOR WITH RETURN FOR
---	    SELECT EXPORT_FILE_NAME FROM SYSIBM.SYSDUMMY1; 
---		OPEN CUR;
---	END;  
-
-	IF @EXPORT_TYPE ='JSON' THEN
+	 
+	 
+	  
+	IF @EXPORT_TYPE ='CSV' THEN
+	     SET TEMPLATE_NAME 	='ANIM_PARENTAGE_VERIF_RECORD_CSV'; 
+	     call usp_common_export_csv_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,EXPORT_FILE_NAME); 
+    
+	ELSEIF @EXPORT_TYPE ='JSON' THEN
+	
+	     SET TEMPLATE_NAME 	='ANIM_PARENTAGE_VERIF_RECORD'; 
 	     call usp_common_export_json_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,LAST_ROW_ID,EXPORT_FILE_NAME);
 	
 	END IF; 
     
     
     begin
-        declare c cursor with return for
+        declare c1 cursor with return for
           select EXPORT_FILE_NAME from sysibm.sysdummy1;
        
-       open c;
+       open c1;
     
     end; 
  
