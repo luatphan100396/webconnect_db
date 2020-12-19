@@ -18,7 +18,8 @@ BEGIN
 	   select  
 	           f.page as parent_feature,
 	           f.feature_name, 
-			   p.permission_name 
+			   p.permission_name,
+			   g.group_name 
 	   from
 	  (
 	   select user_id 
@@ -35,7 +36,9 @@ BEGIN
 	     on f.feature_id = rfp.feature_id
 	  inner join permissions p 
 	     on p.permission_id = rfp.permission_id
-	 
+     
+	  inner join groups g
+	    on g.GROUP_ID = ug.GROUP_ID
 	  with ur;
 
 	OPEN cursor1;

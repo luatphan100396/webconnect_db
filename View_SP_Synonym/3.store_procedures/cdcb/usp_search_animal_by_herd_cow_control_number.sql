@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE usp_get_animal_ids_for_search
+CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Herd_Cow_Control_Number
 --=================================================================================================
 --Author: Nghi Ta
 --Created Date: 2020-05-12
@@ -6,11 +6,10 @@ CREATE OR REPLACE PROCEDURE usp_get_animal_ids_for_search
 --Output:
 --        +Ds1: Table with animal id, animal key, species code, sex code, herd code, ctrl num, has error, 
 --              is linked to animal 
---        +Ds2: Animal which has no information returned 
+--        +Ds2: Invalid item 
 --=================================================================================================
 (
-	IN @INPUT_VALUE VARCHAR(10000)
-	,@FILTER_TYPE VARCHAR(128) default 'ANIM_KEY_17'
+	IN @INPUT_VALUE VARCHAR(10000) 
 	,@DELIMITER VARCHAR(1) default ','
 )
 	DYNAMIC RESULT SETS 3
@@ -25,15 +24,7 @@ BEGIN
 	
 	)WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
-	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpIntIDChar17Lists   
-	(
-		ANIM_KEY INT,
-		INT_ID CHAR(17), 
-		SEX_CODE char(1),
-		SPECIES_CODE char(1), 
-		ORDER INT
-	) WITH REPLACE  ON COMMIT PRESERVE ROWS;
-  
+	 
     DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpHerd_CtrlNum_List   
 	(
 		ANIM_KEY INT,
@@ -48,7 +39,7 @@ BEGIN
 	   DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpInputValid 
 	(
 		INPUT_VALUE varchar(128) 
-	)  ON COMMIT PRESERVE ROWS;
+	)  WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
 	
 	INSERT INTO SESSION.TmpInputs(INPUT_VALUE)
@@ -68,10 +59,7 @@ BEGIN
 	 WHEN MATCHED THEN
 	 DELETE
 	 ;
-	 
-	 
-	 --Search Animal by Herd + Cow Control Number
-	IF @FILTER_TYPE ='HERD_CTRL_NUM' THEN
+	  
 		INSERT INTO SESSION.TmpHerd_CtrlNum_List
 		(
 			ANIM_KEY,
@@ -109,7 +97,7 @@ BEGIN
 		 FROM SESSION.TmpHerd_CtrlNum_List a with UR;
 		 
 		 
-		 --retrive data
+		 --DS1: retrive data
      	begin
 		 	DECLARE cursor0 CURSOR WITH RETURN for
 		 		
@@ -137,113 +125,9 @@ BEGIN
 		  
 		 	OPEN cursor0;
 		 	 
-	   end;
-	 
-	END IF;
-
-	--Search Animal by Animal ID (17 bytes) API 
-	IF @FILTER_TYPE ='ANIM_KEY_17' THEN
-	
-	     -- Find matching animal id in id_xref_table
-		INSERT INTO SESSION.TmpIntIDChar17Lists
-		(
-			ANIM_KEY,
-			INT_ID, 
-			SEX_CODE,
-			SPECIES_CODE,  
-			ORDER
-		)
-		  
-		 SELECT 
-		 a.ANIM_KEY, 
-		 a.INT_ID,  
-		 a.SEX_CODE,
-		 a.SPECIES_CODE,
-		 t.ORDER
-		 FROM  SESSION.TmpInputs t
-		 JOIN ID_XREF_TABLE a on upper(t.INPUT_VALUE) = a.INT_ID 
-		 WHERE length(trim(t.INPUT_VALUE))=17
-		 with UR;
-		 
-		 -- Find matching animal id in error data
-		 INSERT INTO SESSION.TmpIntIDChar17Lists
-		 (
-		    ANIM_KEY,
-			INT_ID, 
-			SEX_CODE,
-			SPECIES_CODE,  
-			ORDER
-		 )
-		  SELECT 
-		 NULL AS ANIM_KEY, 
-		 a.INT_ID,  
-		 'U' AS  SEX_CODE,
-		 a.SPECIES_CODE,
-		 t.ORDER
-		 FROM  SESSION.TmpInputs t
-		 JOIN ANIM_KEY_HAS_ERROR a on upper(t.INPUT_VALUE) = a.INT_ID 
-		 LEFT JOIN 
-		 (SELECT DISTINCT INT_ID
-		  FROM SESSION.TmpIntIDChar17Lists  
-		 )validAnimal on a.INT_ID = validAnimal.INT_ID
-		 WHERE validAnimal.INT_ID IS NULL
-		 and length(trim(t.INPUT_VALUE))=17
-		  
-		 with UR;
-		 
-		 
-		 
-		 INSERT INTO SESSION.TmpInputValid 
-		 (
-		 INPUT_VALUE
-		 )
-		 SELECT INT_ID
-		 FROM SESSION.TmpIntIDChar17Lists a with UR;
-  
-	    -- Remove duplicate output, same animal ID but has different anim key
-		
-		MERGE INTO SESSION.TmpIntIDChar17Lists as A
-		 using
-		 ( 
-			 SELECT INT_ID, MIN(ANIM_KEY) AS MIN_ANIM_KEY -- keep min animal_key
-			 FROM SESSION.TmpIntIDChar17Lists t	
-			 GROUP BY INT_ID with UR
-		 )AS B
-		 ON  A.INT_ID = B.INT_ID and A.ANIM_KEY <> B.MIN_ANIM_KEY
-		 WHEN MATCHED THEN
-		 DELETE
-		 ;
-		 
-		 
-	-- DS1: animal list
-     	begin
-		 	DECLARE cursor1 CURSOR WITH RETURN for
-		 		
-		 	SELECT  a.INT_ID AS ANIMAL_ID,
-		 	a.ANIM_KEY,
-		 	a.SPECIES_CODE,
-		 	a.SEX_CODE,
-		 	case when  aHasErr.INT_ID is not null then '1'
-		      else '0' 
-		    end as HAS_ERROR,
-			case when  a.ANIM_KEY is not null then '1'
-			      else '0' 
-			end as IS_LINK_TO_ANIMAL, 
-			row_number()over(order by a.ORDER )-1  as INDEX
-		 	FROM SESSION.TmpIntIDChar17Lists a
-		 	LEFT JOIN ANIM_KEY_HAS_ERROR aHasErr 
-		     on aHasErr.INT_ID = a.INT_ID 
-		     and aHasErr.SPECIES_CODE = a.SPECIES_CODE 
-		     
-			ORDER BY ORDER with UR;
-		  
-		 	OPEN cursor1;
-		 	 
-	   end;
-	 
-	END IF;
+	   end; 
 	   
-	  	-- DS1: animal list
+	  	-- DS2: invalid list
      	begin
 		 	DECLARE cursor1_1 CURSOR WITH RETURN for
 		 		
@@ -258,3 +142,4 @@ BEGIN
 	   end;
 	    
 END
+
