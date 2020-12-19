@@ -143,7 +143,7 @@ BEGIN
 			case when  a.ANIM_KEY is not null then '1'
 			      else '0' 
 			end as IS_LINK_TO_ANIMAL, 
-			row_number()over(order by a.ORDER )-1  as INDEX
+			row_number()over(order by a.ORDER )  as ORDER
 		 	FROM SESSION.TmpIntIDChar17Lists a
 		 	LEFT JOIN ANIM_KEY_HAS_ERROR aHasErr 
 		     on aHasErr.INT_ID = a.INT_ID 
