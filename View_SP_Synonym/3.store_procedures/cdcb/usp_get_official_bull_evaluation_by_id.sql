@@ -1,6 +1,6 @@
-CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID_test
+CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
 --========================================================================================================
---Author: Linh Pham
+--Author: Nghi Ta
 --Created Date: 2020-16-12
 --Description: Get official bull evaluation data: PTA, PA, Metrit, SCR,
 --             country contribution... for one animal
