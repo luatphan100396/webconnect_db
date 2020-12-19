@@ -629,7 +629,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
 		 	DECLARE cursor7 CURSOR WITH RETURN for 
 		 	SELECT  
 		 	    animEvl.ROOT_INT_ID as ROOT_ANIMAL_ID
-				,float2char_thsnd_format(bFert.ERCR_QTY*0.1,0.1) as SCR_PA
+				,float2char_thsnd_format(bFert.ERCR_QTY*0.1,0.1) as SCR_PTA
 				,cast(cast(bFert.ERCR_REL_PCT as int) || (case when bFert.ERCR_REL_PCT is not null then '%' else '' end ) as varchar(30)) as SCR_REL
 				,bFert.BREEDINGS_QTY AS SCR_BREEDINGS 	
 					
