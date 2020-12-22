@@ -67,7 +67,7 @@ BEGIN
         PEND VARCHAR(2),
         PRIORITY SMALLINT
     )
-      on commit preserve rows;
+      WITH REPLACE  on commit preserve rows;
       
      DECLARE  GLOBAL TEMPORARY TABLE SESSION.TmpAnimalLists_Geno_Sample_Conflict -- DROP TABLE SESSION.TmpAnimalLists_Geno_Sample_Conflict
 	(
