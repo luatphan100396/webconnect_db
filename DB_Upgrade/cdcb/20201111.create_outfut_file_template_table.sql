@@ -55,3 +55,133 @@ VALUES
 CURRENT DATE 
 )
 ;
+
+INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE
+(
+	NAME,
+	TYPE,
+	TEMPLATE_DETAIL,
+	PREFIX_OUTPUT_NAME,
+	CREATE_DATE
+)
+values
+('ANIM_PARENTAGE_VERIF_RECORD_CSV',
+'CSV',
+'<?xml version="1.0" encoding="utf-8"?>
+<Template>
+	<Item>
+		<Field>ANIMAL_ID</Field>
+		<Header>ANIMAL</Header>
+	</Item>
+	<Item>
+		<Field>ANIMAL_SOURCE_CODE</Field>
+		<Header>ANIMAL SOURCE CODE</Header>
+	</Item> 
+	<Item>
+		<Field>SAMPLE_ID</Field>
+		<Header>SAMPLE ID</Header>
+	</Item> 
+	<Item>
+		<Field>REQUESTER_ID</Field>
+		<Header>REQUESTER</Header>
+	</Item> 
+	<Item>
+		<Field>CHIP_TYPE</Field>
+		<Header>CHIP</Header>
+	</Item> 
+	<Item>
+		<Field>SIRE_ID</Field>
+		<Header>SIRE</Header>
+	</Item> 
+	<Item>
+		<Field>SIRE_SOURCE_CODE</Field>
+		<Header>SIRE SOURCE CODE</Header>
+	</Item> 
+	<Item>
+		<Field>SIRE_STATUS_CODE</Field>
+		<Header>SIRE STATUS CODE</Header>
+	</Item> 
+	<Item>
+		<Field>SUGGESTED_SIRE</Field>
+		<Header>SUGGESTED SIRE</Header>
+	</Item> 
+	<Item>
+		<Field>DAM_ID</Field>
+		<Header>DAM ID</Header>
+	</Item> 
+	<Item>
+		<Field>DAM_SOURCE_CODE</Field>
+		<Header>DAM SOURCE CODE</Header>
+	</Item> 
+	<Item>
+		<Field>DAM_STATUS_CODE</Field>
+		<Header>DAM STATUS CODE</Header>
+	</Item> 
+	<Item>
+		<Field>SUGGESTED_DAM</Field>
+		<Header>SUGGESTED DAM</Header>
+	</Item> 
+	<Item>
+		<Field>MGS_ID</Field>
+		<Header>MGS ID</Header>
+	</Item> 
+	<Item>
+		<Field>MGS_STATUS_CODE</Field>
+		<Header>MGS STATUS CODE</Header>
+	</Item> 
+	<Item>
+		<Field>MGS_SUGG_1</Field>
+		<Header>MGS SUGG 1</Header>
+	</Item> 
+	<Item>
+		<Field>MGS_STAT_1</Field>
+		<Header>MGS STAT 1</Header>
+	</Item> 
+	<Item>
+		<Field>MGS_SUGG_2</Field>
+		<Header>MGS SUGG 2</Header>
+	</Item> 
+	<Item>
+		<Field>MGS_STAT_2</Field>
+		<Header>MGS STAT 2</Header>
+	</Item> 
+	<Item>
+		<Field>MGS_SUGG_3</Field>
+		<Header>MGS SUGG 3</Header>
+	</Item> 
+	<Item>
+		<Field>MGS_STAT_3</Field>
+		<Header>MGS STAT 3</Header>
+	</Item> 
+	<Item>
+		<Field>MGS_SUGG_4</Field>
+		<Header>MGS STAT 4</Header>
+	</Item> 
+	<Item>
+		<Field>USABILITY_INDICATOR</Field>
+		<Header>USABILITY INDICATOR</Header>
+	</Item> 
+	<Item>
+		<Field>PARENTAGE_INDICATOR</Field>
+		<Header>PARENTAGE INDICATOR</Header>
+	</Item> 
+	<Item>
+		<Field>FEE_CODE</Field>
+		<Header>FEE CODE</Header>
+	</Item> 
+	<Item>
+		<Field>DATE</Field>
+		<Header>DATE</Header>
+	</Item> 
+	<Item>
+		<Field>GETS_EVAL</Field>
+		<Header>GETS EVAL</Header>
+	</Item> 
+	 
+</Template>
+' 
+ ,
+'Parentage_Ver_Records_CSV',
+CURRENT DATE 
+)
+;
