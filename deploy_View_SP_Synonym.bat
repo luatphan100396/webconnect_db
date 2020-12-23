@@ -4,15 +4,14 @@ Error=0;
  echo "DB Name = ${DB_Name}"
  db2 connect to ${DB_Name};
   
- #add termination characters : @
- for f in $(find ./View_SP_Synonym/ -name '*.sql'  ); do echo "@">> $f;done
+
   
 #rem deploy Synomy-DataType
  echo "Deploying Synomy-DataType" >> deploy.log;
  echo $?
  for f in $(find ./View_SP_Synonym/2.Synonym_DataType/ -name '*.sql' | sort -n  ); do 
  echo $f;
- db2 -td@ -f $f >> deploy.log; 
+ db2 -t -f $f >> deploy.log; 
  if [ $? -gt 0 ]
    then 
 	  echo "Failed to deploy Synomy-DataType: $f" >> deploy.log; 
@@ -33,6 +32,9 @@ Error=0;
  
  echo "Deploying Synomy-DataType completed" >> deploy.log;
 
+ #add termination characters : @
+ for f in $(find ./View_SP_Synonym/1.functions/ -name '*.sql'  ); do echo "@">> $f;done
+ for f in $(find ./View_SP_Synonym/3.store_procedures/ -name '*.sql'  ); do echo "@">> $f;done
 
  #rem deploy functions
  echo "Deploying functions" >> deploy.log;
