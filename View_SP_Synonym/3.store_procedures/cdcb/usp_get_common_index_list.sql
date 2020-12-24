@@ -18,7 +18,7 @@ BEGIN
 		
 		select 
 			TRAIT AS INDEX, 
-			TRAIT_FULL_NAME,  
+			trim(TRAIT_FULL_NAME) as TRAIT_FULL_NAME,  
 			UNIT, 
 			DECIMAL_ADJUST_CODE
 		from

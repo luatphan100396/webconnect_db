@@ -500,7 +500,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
 		 		 
 		 	SELECT ROOT_INT_ID AS ROOT_ANIMAL_ID,
 					tmp.TRAIT,
-					traits.INDEX_FULL_NAME AS DESCRIPTION,
+					trim(traits.INDEX_FULL_NAME) AS DESCRIPTION,
 					traits.UNIT,
 					PTA,
 					cast(cast(REL as int) || (case when REL is not null then '%' else '' end ) as varchar(30)) as REL,
@@ -540,7 +540,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Official_Bull_Evaluation_By_ID
 		 		
 		 	SELECT ROOT_INT_ID AS ROOT_ANIMAL_ID,
 			tmp.TRAIT,
-			traits.TRAIT_FULL_NAME AS DESCRIPTION,
+			trim(traits.TRAIT_FULL_NAME) AS DESCRIPTION,
 			traits.UNIT,
 			case when tmp.TRAIT IN ('Mlk' ,'Fat','Pro') THEN float2char_thsnd_format(PTA,DECIMAL_ADJUST_CODE)
 				 else  float2char_thsnd_format(PTA,DECIMAL_ADJUST_CODE) 

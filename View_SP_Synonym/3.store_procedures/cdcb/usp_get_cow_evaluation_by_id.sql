@@ -317,7 +317,7 @@ BEGIN
 				,animEvl.SIRE_ID AS SIRE_INT_ID
 				,animEvl.DAM_ID AS DAM_INT_ID
 				,VARCHAR_FORMAT(to_date(animEvl.BIRTH_DATE,'YYYYMMDD'),'YYYY-MM-DD') AS BIRTH_DATE
-				,anim_name.ANIM_NAME AS LONG_NAME  
+				,trim(anim_name.ANIM_NAME) AS LONG_NAME  
 				,animEvl.REGIS_STATUS_CODE 
 			 	,ped.SOURCE_CODE AS SRC
 				,animEvl.LH_STATE_CODE||animEvl.LH_COUNTRY_CODE||animEvl.LH_HERD_NUMBER AS LAST_HERD_CODE 
@@ -343,7 +343,7 @@ BEGIN
 		 		 
 		 	SELECT ROOT_INT_ID AS ROOT_ANIMAL_ID,
 					tmp.TRAIT,
-					traits.INDEX_FULL_NAME AS DESCRIPTION,
+					trim(traits.INDEX_FULL_NAME) AS DESCRIPTION,
 					traits.UNIT,
 					PTA,
 					cast(cast(REL as int) || (case when REL is not null then '%' else '' end ) as varchar(30)) as REL,
@@ -383,7 +383,7 @@ BEGIN
 		 		
 		 	SELECT ROOT_INT_ID AS ROOT_ANIMAL_ID,
 			tmp.TRAIT,
-			traits.TRAIT_FULL_NAME AS DESCRIPTION,
+			trim(traits.TRAIT_FULL_NAME) AS DESCRIPTION,
 			traits.UNIT,
 			case when tmp.TRAIT IN ('Mlk' ,'Fat','Pro') THEN float2char_thsnd_format(PTA,DECIMAL_ADJUST_CODE)
 										ELSE  float2char_thsnd_format(PTA,DECIMAL_ADJUST_CODE) 
