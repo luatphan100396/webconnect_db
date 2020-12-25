@@ -57,7 +57,7 @@ BEGIN
 	 	,MBC VARCHAR(1) 
 	 	,ID_CHG VARCHAR(1)
 	 	,PNT_CHG VARCHAR(1) 
-	 	,DPRC VARCHAR(2)  
+	 	,DRPC VARCHAR(2)  
 	 	,AFFIL VARCHAR(3)
 	 	,HERD int
 	 	,CTRL int
@@ -213,7 +213,7 @@ BEGIN
 	 	,MBC
 	 	,ID_CHG 
 	 	,PNT_CHG 
-	 	,DPRC  
+	 	,DRPC  
 	 	,AFFIL 
 	 	,HERD 
 	 	,CTRL 
@@ -239,7 +239,7 @@ BEGIN
 		,SUBSTRING(e5Table.BASE_RECORD,89,1) AS MBC
 		,SUBSTRING(e5Table.BASE_RECORD,98,1) AS ID_CHG
 		,SUBSTRING(e5Table.BASE_RECORD,99,1) AS PNT_CHG
-		,SUBSTRING(e5Table.BASE_RECORD,100,2) AS DPRC 
+		,SUBSTRING(e5Table.BASE_RECORD,100,2) AS DRPC 
 		,SUBSTRING(e5Table.BASE_RECORD,102,3) AS AFFIL
 		,e5Table.HERD_CODE AS HERD
 		,e5Table.CTRL_NUM AS CTRL
@@ -278,7 +278,7 @@ BEGIN
 		 		,MBC
 		 		,ID_CHG
 		 		,PNT_CHG
-		 		,DPRC 
+		 		,DRPC 
 		 		,AFFIL
 		 		,HERD
 		 		,CTRL
@@ -367,4 +367,6 @@ BEGIN
 		 	OPEN cursor1;
 		 	 
 	END; 
+	 
+	
 END
