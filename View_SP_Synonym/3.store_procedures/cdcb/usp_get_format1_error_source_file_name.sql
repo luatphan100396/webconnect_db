@@ -1,7 +1,7 @@
-CREATE OR REPLACE PROCEDURE usp_Get_Animal_Error_Fmt1_source_file_name
+CREATE OR REPLACE PROCEDURE usp_Get_format1_Error_Source_File_Name
 --======================================================
---Author: Nghi Ta
---Created Date: 2020-05-12
+--Author: Linh Pham
+--Created Date: 2020-12-24
 --Description: Get list source file name for format 1 per
 -- one animal
 --Output: 
