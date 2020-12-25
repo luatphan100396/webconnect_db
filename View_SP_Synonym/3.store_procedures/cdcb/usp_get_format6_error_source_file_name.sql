@@ -1,7 +1,7 @@
-CREATE OR REPLACE PROCEDURE usp_Get_Animal_Error_Fmt6_source_file_name
+CREATE OR REPLACE PROCEDURE usp_Get_Format6_Error_Source_File_Name
 --======================================================
---Author: Nghi Ta
---Created Date: 2020-06-12
+--Author: Linh Pham
+--Created Date: 2020-12-24
 --Description: Get detail input and error of format 6 
 -- per one animal
 --Output:
