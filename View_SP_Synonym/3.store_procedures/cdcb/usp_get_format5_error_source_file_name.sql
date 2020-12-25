@@ -1,11 +1,14 @@
-CREATE OR REPLACE PROCEDURE usp_Get_Animal_Error_Fmt5_source_file_name
+CREATE OR REPLACE PROCEDURE usp_Get_Format5_Error_Source_File_Name
 --======================================================
---Author: Nghi Ta
---Created Date: 2020-05-12
---Description: Get detail input and error of format 5 
+--Author: Linh Pham
+--Created Date: 2020-12-24
+--Description: Get detail input and error of format 5
 -- per one animal
 --Output:
---        +Ds1: Table with INT_ID, species code, calv pdate, herd code, proc date, source file name
+--        +Ds1: Table with animal id, sire id, dam id, alias id, birth date, source, proc date,
+--              affil, herd, ctrl number, lact type, lact verrification, calving date, dim, dry...
+--        +Ds2: Preproduction detail: type, date, event code, seq, naab code, id
+--        +Ds3: Error detail: err code, description, action, conflict id, proc date, herd, source 
 --======================================================
 ( 
     IN @INT_ID char(17),
