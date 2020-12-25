@@ -22,10 +22,10 @@ BEGIN
 	IF @SEX_CODE ='M' AND @SPECIES_CODE ='0' THEN
 	
 	   SET HAS_EVL = (
-			   SELECT COUNT(1) FROM BULL_EVL_TABLE_DECODE 
+			   SELECT case when COUNT(1) >1 then 1 else 0 end
+			   FROM BULL_EVL_TABLE_DECODE 
 			   WHERE BULL_ID = @INT_ID
-			         AND EVAL_PDATE = v_EVAL_PDATE 
-			   LIMIT 1
+			         AND EVAL_PDATE = v_EVAL_PDATE  
 	   );
 	   
 	   IF HAS_EVL =1 THEN 
@@ -33,10 +33,9 @@ BEGIN
 	   END IF;
 	      
 	   SET HAS_EVL = (
-			   SELECT COUNT(1) FROM SIRE_TYPE_TABLE 
+			   SELECT case when COUNT(1) >1 then 1 else 0 end FROM SIRE_TYPE_TABLE 
 			   WHERE ANIM_KEY = @ANIM_KEY
-			         AND EVAL_PDATE = v_EVAL_PDATE 
-			   LIMIT 1
+			         AND EVAL_PDATE = v_EVAL_PDATE  
 	   );   
 	    IF HAS_EVL =1 THEN 
 	    RETURN HAS_EVL ;
@@ -45,10 +44,9 @@ BEGIN
 	ELSEIF @SEX_CODE ='F' THEN
 	
 	   SET HAS_EVL = (
-			   SELECT COUNT(1) FROM COW_EVL_TABLE_DECODE 
+			   SELECT case when COUNT(1) >1 then 1 else 0 end FROM COW_EVL_TABLE 
 			   WHERE INT_ID = @INT_ID
-			         AND EVAL_PDATE = v_EVAL_PDATE 
-			   LIMIT 1
+			         AND EVAL_PDATE = v_EVAL_PDATE  
 	   );
 	   
 	   IF HAS_EVL =1 THEN 
@@ -56,10 +54,9 @@ BEGIN
 	   END IF;
 	      
 	   SET HAS_EVL = (
-			   SELECT COUNT(1) FROM COW_TYPE_TABLE 
+			   SELECT case when COUNT(1) >1 then 1 else 0 end FROM COW_TYPE_TABLE 
 			   WHERE ANIM_KEY = @ANIM_KEY
-			         AND EVAL_PDATE = v_EVAL_PDATE 
-			   LIMIT 1
+			         AND EVAL_PDATE = v_EVAL_PDATE  
 	   );   
 	    IF HAS_EVL =1 THEN 
 	    RETURN HAS_EVL ;
