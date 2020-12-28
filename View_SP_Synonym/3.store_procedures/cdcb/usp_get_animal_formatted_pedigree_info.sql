@@ -123,7 +123,7 @@ P1: BEGIN
 				 ,NULL AS CODES
 				 ,NULL AS RHA
 				 ,trim(ressive.RECESSIVE_CODE_SEG) AS RECESSIVES 
-				 ,anim.ANIM_NAME AS LONG_NAME 
+				 ,trim(anim.ANIM_NAME) AS LONG_NAME 
 				 ,trim(ref_src.DESCRIPTION)  AS SRC_DESC
 			FROM SESSION.TMP_INPUT t
 			INNER JOIN  SESSION.TmpAnimalLists_Alias id
