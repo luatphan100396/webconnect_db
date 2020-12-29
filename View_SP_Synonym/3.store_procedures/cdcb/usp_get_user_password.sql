@@ -1,7 +1,7 @@
-CREATE OR REPLACE PROCEDURE usp_get_user_password
+CREATE OR REPLACE PROCEDURE usp_Get_User_Password
 --======================================================
---Author: Nghi Ta
---Created Date: 2020-04-06
+--Author: Linh Pham
+--Created Date: 2020-12-29
 --Description: Get user password
 --Output:
 --        +Ds1: Table with password
@@ -13,10 +13,8 @@ CREATE OR REPLACE PROCEDURE usp_get_user_password
 BEGIN
 	DECLARE cursor1 CURSOR WITH RETURN for
 
-	SELECT  
-			a.USER_NAME,
-			a.PASSWORD 
-	FROM  USERS a
+	SELECT  @USER_NAME as USER_NAME, a.PASSWORD 
+	FROM  USER_ACCOUNT_TABLE a
 	WHERE lower(USER_NAME) = lower(@USER_NAME)
 	WITH UR;
 
