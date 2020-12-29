@@ -177,7 +177,7 @@ BEGIN
 			 	
 			 	SELECT 
 			 		err.ERR_CODE
-					 ,ref.ACTION_CODE
+					 ,refDesc.DESCRIPTION as ACTION_CODE
 					 ,ref.LONG_DESC AS DESCRIPTION
 					 ,err.ID
 					 ,case when length(err.PROC_DATE)=8 then substring(err.PROC_DATE,1,4)||'-'||substring(err.PROC_DATE,5,2)||'-'||substring(err.PROC_DATE,7,2) else err.PROC_DATE end as PROC_DATE
@@ -197,6 +197,14 @@ BEGIN
 				)err
 				LEFT JOIN ERROR_REF_TABLE ref 
 					ON err.ERR_CODE = ref.NUMERIC_PART1_NUM||ref.UPPERCASE_PART2_CODE||ref.LOWERCASE_PART3_CODE
+				LEFT JOIN
+				(
+				   SELECT CODE, DESCRIPTION
+				   FROM REFERENCE_TABLE
+				   WHERE TYPE = 'ERROR_ACTION_CODE'
+				)refDesc
+					ON refDesc.CODE = ref.ACTION_CODE
+				
 					ORDER BY err.ERR_NUM with UR
 					;
 			 	
