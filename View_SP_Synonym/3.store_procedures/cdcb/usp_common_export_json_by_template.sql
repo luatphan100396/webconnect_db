@@ -47,7 +47,6 @@ BEGIN
  	     call SYSPROC.ADMIN_CMD( 'export to '||@EXPORT_FILE_NAME||' of DEL modified by NOCHARDEL 
        	  		                  '||sql_query||'' );
       	  		                    
-	 
 END
 
 
