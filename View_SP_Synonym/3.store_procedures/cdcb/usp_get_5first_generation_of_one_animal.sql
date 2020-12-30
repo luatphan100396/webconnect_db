@@ -161,25 +161,13 @@ INSERT INTO SESSION.animal_0
 	;
  
    BEGIN
-    
-    DECLARE cur01 CURSOR WITH RETURN FOR
-     select * from  SESSION.animal_0 ;	
-     OPEN cur01;
-     END; 
-     
-      BEGIN
-    
-    DECLARE cur012 CURSOR WITH RETURN FOR
-     select * from  SESSION.animals ;	
-     OPEN cur012;
-     END; 
- 
- 
-    BEGIN
+  
     
     DECLARE cur0 CURSOR WITH RETURN FOR
 	SELECT     t.ROOT_ANIMAL_ID, 
-                aID.INT_ID as ANIMAL_ID,
+                case when t.GENERATION =0 then t.ROOT_ANIMAL_ID 
+                     else aID.INT_ID
+                end as ANIMAL_ID,
 				 sID.INT_ID as SIRE_INT_ID,
 				 dID.INT_ID as DAM_INT_ID,
 				 t.SEX_CODE,
