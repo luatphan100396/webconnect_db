@@ -271,3 +271,34 @@ MODIFIED_TIME
 	  where ROLE_SHORT_NAME = 'NOMINATOR'
   )r
 ;  
+
+----USER_AFFILIATION_TABLE----
+INSERT INTO USER_AFFILIATION_TABLE
+  (
+	  USER_KEY,
+	  DATA_SOURCE_KEY,
+	  CREATED_TIME,
+	  MODIFIED_TIME 
+  )
+  
+ select   a.USER_KEY,
+		  d.DATA_SOURCE_KEY,
+		  current timestamp as CREATED_TIME,
+		  current timestamp as MODIFIED_TIME 
+ from
+ ( 
+	  select t.user_key,
+	         a.item as AFFILIATE 
+	  from  
+	  (
+	  select user_key, 
+	         replace(replace(AFFILIATES,'{',''),'}','') as AFFILIATES
+	   from TMP_USER_INFO_TABLE
+	  ) t
+	  ,table(fn_Split_String (t.AFFILIATES,',')) a
+	  where a.item<>''
+  )a
+  inner join DATA_SOURCE_TABLE d
+  on a.AFFILIATE = d.SOURCE_SHORT_NAME 
+  ;
+  
