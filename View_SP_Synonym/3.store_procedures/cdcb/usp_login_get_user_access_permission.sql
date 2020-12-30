@@ -14,8 +14,7 @@ BEGIN
 
    BEGIN
 	DECLARE cursor1 CURSOR WITH RETURN for 
-	
-			  select USER_NAME,
+	     SELECT
 			 g.GROUP_SHORT_NAME AS GROUP_ROLE,
 			 f.FEATURE_NAME,
 			 fc.COMPONENT_NAME
@@ -38,8 +37,8 @@ BEGIN
 		    on f.FEATURE_KEY = fc.FEATURE_KEY
 		
 		union
-		 
-		 select USER_NAME,
+		
+		SELECT
 			 g.ROLE_SHORT_NAME,
 			 f.FEATURE_NAME,
 			 fc.COMPONENT_NAME
