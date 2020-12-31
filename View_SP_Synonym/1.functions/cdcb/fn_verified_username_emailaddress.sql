@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_Verified_UserName_EmailAdress
+CREATE OR REPLACE FUNCTION fn_Verified_UserName_EmailAddress
 --======================================================
 --Author: Nghi Ta
 --Created Date: 2020-12-19
