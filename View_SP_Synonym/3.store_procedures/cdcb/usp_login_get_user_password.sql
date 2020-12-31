@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE usp_Get_User_Password
+CREATE OR REPLACE PROCEDURE usp_Login_Get_User_Password
 --======================================================
 --Author: Linh Pham
 --Created Date: 2020-12-29
