@@ -72,6 +72,15 @@ P1: BEGIN
 		PERMISSION CHAR(1)
 	) WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
+	DECLARE GLOBAL TEMPORARY TABLE SESSION.Tmp_DATA_SOURCE_TABLE
+	(
+		DATA_SOURCE_KEY INT,
+		CLASS_CODE CHAR(1), 
+		SOURCE_SHORT_NAME   varchar(30),
+		STATUS_CODE char(1) 
+	) WITH REPLACE ON COMMIT PRESERVE ROWS;
+	 
+	
     --- RETRIEVE INPUT
 	SET input_xml =  xmlparse(document @inputs);
  
@@ -176,7 +185,43 @@ P1: BEGIN
 			Value       VARCHAR(1000)  PATH 'value' 
 			) AS XML_BOOKS;
 	   
-	   
+	-- Clean duplicate on DATA_SOURCE_TABLE and insert data into temporary table
+	DECLARE GLOBAL TEMPORARY TABLE SESSION.Tmp_DATA_SOURCE_TABLE
+	(
+		DATA_SOURCE_KEY INT,
+		CLASS_CODE CHAR(1), 
+		SOURCE_SHORT_NAME   varchar(30),
+		STATUS_CODE char(1) 
+	) WITH REPLACE ON COMMIT PRESERVE ROWS;
+	    
+	INSERT INTO SESSION.Tmp_DATA_SOURCE_TABLE
+	(
+		DATA_SOURCE_KEY,
+		CLASS_CODE,
+		SOURCE_SHORT_NAME,
+		STATUS_CODE 
+	)
+	
+	select DATA_SOURCE_KEY,
+			CLASS_CODE,
+			SOURCE_SHORT_NAME,
+			STATUS_CODE
+     from
+	    (    select 
+			        DATA_SOURCE_KEY,
+					CLASS_CODE,
+					SOURCE_SHORT_NAME,
+					STATUS_CODE, 
+					row_number()over(partition by SOURCE_SHORT_NAME order by  case when STATUS_CODE ='A' then 1
+																			when STATUS_CODE ='S' then 2
+																			when STATUS_CODE ='I' then 3
+																			when STATUS_CODE ='D' then 4
+																			else 999
+																	   end)
+			  as RN
+    	  from DATA_SOURCE_TABLE 
+    	)
+    where RN=1;
 	   
 	   -- INPUT VALIDATION
 		IF  v_FIRST_NAME IS NULL
@@ -328,14 +373,13 @@ P1: BEGIN
 			 
 		   
 		         
-		 DELETE FROM USER_ROLE_TABLE u
-		 WHERE not exists (select 1 
-						  from SESSION.TmpRoles t
-						  inner join ROLE_TABLE r
-					      on t.ROLE = r.ROLE_SHORT_NAME
-		                   where u.USER_KEY = v_USER_KEY
-		                       and u.ROLE_KEY = r.ROLE_KEY 
-		                     ) ;
+		 DELETE FROM USER_ROLE_TABLE u 
+		 WHERE ROLE_KEY NOT IN (select r.ROLE_KEY  
+								from SESSION.TmpRoles t
+								inner join ROLE_TABLE r
+							        on t.ROLE = r.ROLE_SHORT_NAME 
+		                     ) 
+		        and u.USER_KEY = v_USER_KEY;
 		 
 		  
 			MERGE INTO USER_ROLE_TABLE as A
@@ -371,16 +415,18 @@ P1: BEGIN
 			   
 			 
 			/*  Update user affiliations  */
-			 DELETE FROM USER_AFFILIATION_TABLE u
-			 WHERE not exists (select 1 
-								  from SESSION.TmpAffiliates t
-								  inner join DATA_SOURCE_TABLE r
-							      on t.SOURCE_SHORT_NAME = r.SOURCE_SHORT_NAME
-				                   where u.USER_KEY = v_USER_KEY
-		                       and u.DATA_SOURCE_KEY = r.DATA_SOURCE_KEY 
-		                     ) ;  
-			 
-			
+			  
+			DELETE FROM USER_AFFILIATION_TABLE u 
+		    WHERE DATA_SOURCE_KEY NOT IN (select r.DATA_SOURCE_KEY  
+										  from SESSION.TmpAffiliates t
+										  inner join SESSION.Tmp_DATA_SOURCE_TABLE r
+									      on t.SOURCE_SHORT_NAME = r.SOURCE_SHORT_NAME 
+		                     ) 
+		        and u.USER_KEY = v_USER_KEY;
+		    
+					
+					
+		        
 			 MERGE INTO USER_AFFILIATION_TABLE as A
 				 using
 				 ( 
@@ -394,7 +440,7 @@ P1: BEGIN
 						   end) as WRITE_PERMISSION 
 				 
 					FROM SESSION.TmpAffiliates a
-					inner join DATA_SOURCE_TABLE s
+					inner join SESSION.Tmp_DATA_SOURCE_TABLE s
 					   on a.SOURCE_SHORT_NAME = s.SOURCE_SHORT_NAME
 					left JOIN SESSION.TmpAffiliatePermission p
 					   on a.source_short_name = p.source_short_name 
@@ -439,6 +485,8 @@ P1: BEGIN
 			 ELSE 
 				COMMIT ; 
 				
+				     
+					
 					BEGIN
 						DECLARE cursor1 CURSOR WITH RETURN for
 						SELECT  1 AS RESULT 
