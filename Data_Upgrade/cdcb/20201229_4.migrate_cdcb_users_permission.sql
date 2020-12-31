@@ -277,12 +277,16 @@ INSERT INTO USER_AFFILIATION_TABLE
   (
 	  USER_KEY,
 	  DATA_SOURCE_KEY,
+	  READ_PERMISSION,
+	  WRITE_PERMISSION,
 	  CREATED_TIME,
 	  MODIFIED_TIME 
   )
   
  select   a.USER_KEY,
 		  d.DATA_SOURCE_KEY,
+		  '1' AS READ_PERMISSION,
+		  '0' AS WRITE_PERMISSION,
 		  current timestamp as CREATED_TIME,
 		  current timestamp as MODIFIED_TIME 
  from
