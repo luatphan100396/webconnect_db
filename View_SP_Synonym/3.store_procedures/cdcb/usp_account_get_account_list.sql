@@ -289,6 +289,7 @@ P1: BEGIN
 			lRol.ROLE,
 			lLab.LAB,
 			lDRPC.DRPC,
+			lNom.NOMINATOR,
 			uInfo.STATUS_CODE,
 			uvh.ACCESS_TIME
 		FROM
