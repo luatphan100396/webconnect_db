@@ -54,7 +54,7 @@ P1: BEGIN
 		FROM USER_VISIT_HISTORY_TABLE uvhTable
 		INNER JOIN USER_ACCOUNT_TABLE u
 			ON uvhTable.USER_KEY=u.USER_KEY
-			AND DATE(uvhTable.ACCESS_TIME) <= v_cutoff_timestamp
+			AND (v_cutoff_timestamp is null or uvhTable.ACCESS_TIME >= v_cutoff_timestamp)
 			WHERE u.USER_NAME= @USER_NAME
 			with ur;
 	
