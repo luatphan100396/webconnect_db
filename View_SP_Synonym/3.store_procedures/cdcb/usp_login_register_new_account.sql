@@ -67,9 +67,6 @@ P1: BEGIN
 			Field      VARCHAR(128)  PATH 'field',
 			Value       VARCHAR(3000)  PATH 'value' 
 			) AS XML_BOOKS;
-	SET input_xml =  xmlparse(document @Inputs);
-
-
 	INSERT INTO SESSION.TmpFilterInputsMultiSelect 
 	(    
 		Field,
@@ -149,8 +146,8 @@ P1: BEGIN
 	(
 		v_FIRST_NAME,
 		v_LAST_NAME,
-		v_ORGANIZATION,
 		v_EMAIL_ADDRESS,
+		v_ORGANIZATION,
 		v_TITLE,
 		v_PHONE,
 		v_EMAIL_USE_IND,
@@ -167,7 +164,6 @@ P1: BEGIN
 	DECLARE cursor1 CURSOR WITH RETURN for
 	SELECT 
 		1 AS RESULT
-		    
 	FROM sysibm.sysdummy1;
 	
 	-- Cursor left open for client application
