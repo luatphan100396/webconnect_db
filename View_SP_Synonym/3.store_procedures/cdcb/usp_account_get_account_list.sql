@@ -1,5 +1,4 @@
- 
-CREATE OR REPLACE PROCEDURE usp_Account_Management_Get_Account_List 
+CREATE OR REPLACE PROCEDURE usp_Account_Get_Account_List 
 --======================================================
 --Author: Linh Pham
 --Created Date: 2020-12-31
@@ -231,6 +230,7 @@ P1: BEGIN
 			ON t.USER_KEY = ur.USER_KEY 
 	LEFT JOIN DATA_SOURCE_TABLE r 
 		 	ON ur.DATA_SOURCE_KEY = r.DATA_SOURCE_KEY
+	WHERE CLASS_CODE  = 'R'
 		group by t.USER_KEY
 		
 		WITH UR;
@@ -272,22 +272,25 @@ P1: BEGIN
 		group by t.USER_KEY
 		
 		WITH UR;
+		
+		
+	
 	BEGIN
 	-- Declare cursor
 	DECLARE cursor1 CURSOR WITH RETURN for
 		
 		SELECT 
-                        uAcc.USER_NAME,
-                        uInfo.FIRST_NAME,
-                        uInfo.LAST_NAME,
-                        uInfo.EMAIL_ADDR,
-                        uInfo.ORGANIZATION,
-                        gr.GROUP_SHORT_NAME,
-                        lRol.ROLE,
-                        lLab.LAB,
-                        lDRPC.DRPC,
-                        uInfo.STATUS_CODE,
-                        uvh.ACCESS_TIME
+			uAcc.USER_NAME,
+			uInfo.FIRST_NAME,
+			uInfo.LAST_NAME,
+			uInfo.EMAIL_ADDR,
+			uInfo.ORGANIZATION,
+			gr.GROUP_SHORT_NAME,
+			lRol.ROLE,
+			lLab.LAB,
+			lDRPC.DRPC,
+			uInfo.STATUS_CODE,
+			uvh.ACCESS_TIME
 		FROM
 		SESSION.TmpListUser t
 		LEFT JOIN SESSION.TmpListRoleUser lRol
@@ -315,3 +318,6 @@ P1: BEGIN
 	OPEN cursor1;
 	END;
 END P1
+
+
+ 
