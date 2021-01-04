@@ -1,4 +1,3 @@
-			ON t.USER_KEY=uAcc.USER_KEY
 CREATE OR REPLACE PROCEDURE usp_Account_Get_Account_List 
 --======================================================
 --Author: Linh Pham
