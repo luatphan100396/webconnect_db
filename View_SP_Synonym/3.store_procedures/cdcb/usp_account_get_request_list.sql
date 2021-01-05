@@ -48,7 +48,7 @@ P1: BEGIN
 			
 	--SET VARIABLES
      
-	SET v_SEARCH_BY= (SELECT VALUE FROM SESSION.TmpGetInputs WHERE UPPER(Field) ='SEARCH_BY' LIMIT 1 with UR);
+	SET v_SEARCH_BY= (SELECT LOWER(VALUE) FROM SESSION.TmpGetInputs WHERE UPPER(Field) ='SEARCH_BY' LIMIT 1 with UR);
 	
 	BEGIN
 	-- Declare cursor
@@ -65,10 +65,10 @@ P1: BEGIN
 		FROM ACCOUNT_REQUEST_TABLE aReqTable
 		WHERE 	
 			(v_SEARCH_BY IS NULL 
-				OR ( aReqTable.USER_NAME LIKE '%'||v_SEARCH_BY||'%'
-						OR aReqTable.EMAIL_ADDR LIKE '%'||v_SEARCH_BY||'%'
-						OR aReqTable.FIRST_NAME LIKE '%'||v_SEARCH_BY||'%'
-						OR aReqTable.ORGANIZATION LIKE '%'||v_SEARCH_BY||'%'
+				OR ( LOWER(aReqTable.USER_NAME) LIKE '%'||v_SEARCH_BY||'%'
+						OR LOWER(aReqTable.EMAIL_ADDR) LIKE '%'||v_SEARCH_BY||'%'
+						OR LOWER(aReqTable.FIRST_NAME) LIKE '%'||v_SEARCH_BY||'%'
+						OR LOWER(aReqTable.ORGANIZATION) LIKE '%'||v_SEARCH_BY||'%'
 					)
 			)
 		ORDER BY aReqTable.USER_NAME DESC
@@ -86,10 +86,10 @@ P1: BEGIN
 		FROM ACCOUNT_REQUEST_TABLE aReqTable
 		WHERE 	
 			(v_SEARCH_BY IS NULL 
-				OR ( aReqTable.USER_NAME LIKE '%'||v_SEARCH_BY||'%'
-						OR aReqTable.EMAIL_ADDR LIKE '%'||v_SEARCH_BY||'%'
-						OR aReqTable.FIRST_NAME LIKE '%'||v_SEARCH_BY||'%'
-						OR aReqTable.ORGANIZATION LIKE '%'||v_SEARCH_BY||'%'
+				OR ( LOWER(aReqTable.USER_NAME) LIKE '%'||v_SEARCH_BY||'%'
+						OR LOWER(aReqTable.EMAIL_ADDR) LIKE '%'||v_SEARCH_BY||'%'
+						OR LOWER(aReqTable.FIRST_NAME) LIKE '%'||v_SEARCH_BY||'%'
+						OR LOWER(aReqTable.ORGANIZATION) LIKE '%'||v_SEARCH_BY||'%'
 					)
 			)
 		WITH UR; 
