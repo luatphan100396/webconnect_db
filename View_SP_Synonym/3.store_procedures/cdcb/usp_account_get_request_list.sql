@@ -54,14 +54,16 @@ P1: BEGIN
 	-- Declare cursor
 	DECLARE cursor1 CURSOR WITH RETURN for
 		
-		SELECT 
+		SELECT
+			aReqTable.REQUEST_KEY,
 			aReqTable.USER_NAME,
 			aReqTable.FIRST_NAME,
 			aReqTable.LAST_NAME,
 			aReqTable.EMAIL_ADDR,
 			aReqTable.PHONE,
 			aReqTable.ORGANIZATION,
-			aReqTable.TITLE
+			aReqTable.TITLE,
+			aReqTable.STATUS
 		FROM ACCOUNT_REQUEST_TABLE aReqTable
 		WHERE 	
 			(v_SEARCH_BY IS NULL 
