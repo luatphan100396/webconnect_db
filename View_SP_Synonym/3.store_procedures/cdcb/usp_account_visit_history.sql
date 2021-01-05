@@ -12,12 +12,14 @@ CREATE OR REPLACE PROCEDURE usp_Account_Visit_History
 	,IN @page_number int
 	,IN @row_per_page int
 )
-	DYNAMIC RESULT SETS 2
+	DYNAMIC RESULT SETS 3
 P1: BEGIN
 
-
-     declare v_cutoff_timestamp timestamp;
+	DECLARE v_USER_KEY INT;	
+    DECLARE v_cutoff_timestamp timestamp;
      
+     --SET VARIABLES
+     SET v_USER_KEY=(SELECT USER_KEY FROM USER_ACCOUNT_TABLE WHERE USER_NAME=@USER_NAME);
      
      set v_cutoff_timestamp = (select case when @TIME_RANGE ='last_hour' then current timestamp - 1 hours
                                            when @TIME_RANGE ='last_24hour' then current timestamp - 24 hours
@@ -36,10 +38,7 @@ P1: BEGIN
 		uvhTable.WEB_BROWSER,
 		uvhTable.DEVICE
 	FROM USER_VISIT_HISTORY_TABLE uvhTable
-		INNER JOIN USER_ACCOUNT_TABLE u
-			ON uvhTable.USER_KEY=u.USER_KEY
-			
-			WHERE u.USER_NAME= @USER_NAME
+			WHERE uvhTable.USER_KEY= v_USER_KEY
 			AND (v_cutoff_timestamp is null or uvhTable.ACCESS_TIME >= v_cutoff_timestamp)
 			ORDER BY uvhTable.ACCESS_TIME
 		LIMIT @row_per_page
@@ -47,6 +46,18 @@ P1: BEGIN
 			with ur;
 	
 	OPEN cursor1;
+	END;
+	
+	BEGIN
+	-- Declare cursor
+	DECLARE cursor3 CURSOR WITH RETURN for
+	SELECT  
+		@TIME_RANGE AS TIME_RANGE
+	FROM sysibm.sysdummy1
+			with ur;
+	
+	OPEN cursor3;
+	 END;
 	
 	BEGIN
 		DECLARE cursor2 CURSOR WITH RETURN FOR 	
@@ -54,11 +65,10 @@ P1: BEGIN
 		FROM USER_VISIT_HISTORY_TABLE uvhTable
 		INNER JOIN USER_ACCOUNT_TABLE u
 			ON uvhTable.USER_KEY=u.USER_KEY
+			WHERE uvhTable.USER_KEY= v_USER_KEY
 			AND (v_cutoff_timestamp is null or uvhTable.ACCESS_TIME >= v_cutoff_timestamp)
-			WHERE u.USER_NAME= @USER_NAME
 			with ur;
 	
 	 OPEN cursor2;
-   END;
 	END;
 END P1
