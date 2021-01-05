@@ -8,6 +8,8 @@ CREATE OR REPLACE PROCEDURE usp_Account_Get_Account_List
 --======================================================
 (
 	@Inputs VARCHAR(30000)
+	,IN @page_number int
+	,IN @row_per_page int
 )
 	DYNAMIC RESULT SETS 10
 P1: BEGIN
@@ -313,12 +315,12 @@ P1: BEGIN
 		LEFT JOIN USER_VISIT_HISTORY_TABLE uvh
 			ON uAcc.USER_KEY=uvh.USER_KEY
 			AND uvh.ID=LAST_LOGIN
+		LIMIT @row_per_page
+		OFFSET (@page_number-1)*@row_per_page
+		 
 		WITH UR;
 		    
 	-- Cursor left open for client application
 	OPEN cursor1;
 	END;
 END P1
-
-
- 
