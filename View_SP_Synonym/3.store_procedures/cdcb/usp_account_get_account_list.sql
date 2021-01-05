@@ -316,7 +316,6 @@ P1: BEGIN
 		OFFSET (@page_number-1)*@row_per_page
 		 
 		WITH UR;
-		    
 	-- Cursor left open for client application
 	OPEN cursor1;
 	END;
