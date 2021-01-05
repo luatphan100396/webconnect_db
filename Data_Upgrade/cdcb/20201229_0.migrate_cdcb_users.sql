@@ -86,7 +86,9 @@
 	STATUS_CODE,
 	TITLE,
 	PHONE,
-	EMAIL_USE_IND 
+	EMAIL_USE_IND,
+	CREATED_TIME,
+	MODIFIED_TIME 
  )
  select USER_KEY,
 	    namefirst AS FIRST_NAME,
@@ -96,7 +98,9 @@
 		'A' AS STATUS_CODE,
 		TITLE,
 		PHONE,
-		'Y' AS EMAIL_USE_IND  
+		'Y' AS EMAIL_USE_IND,
+		CURRENT timestamp AS CREATED_TIME,
+	    CURRENT timestamp AS MODIFIED_TIME
    
  from TMP_USER_INFO_TABLE; 
  
@@ -106,14 +110,19 @@
  (
     USER_KEY,
 	USER_NAME,
-	PASSWORD 
+	PASSWORD,
+	CREATED_TIME,
+	MODIFIED_TIME
  ) 
  
  select USER_KEY,
          name,
-         pass
+         pass,
+         CURRENT timestamp AS CREATED_TIME,
+	     CURRENT timestamp AS MODIFIED_TIME
        
  from TMP_USER_INFO_TABLE
  where user_key <>3563;
+ 
  
  

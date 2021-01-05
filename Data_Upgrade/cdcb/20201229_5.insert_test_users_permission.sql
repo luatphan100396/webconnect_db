@@ -72,28 +72,4 @@ MODIFIED_TIME
 ;  
      
   
-  
--- Administrators
-INSERT INTO USER_GROUP_TABLE
-(
-USER_KEY,
-GROUP_KEY,
-CREATED_TIME,
-MODIFIED_TIME 
-)
-  
-  select
-         u.USER_KEY,
-         g.GROUP_KEY,
-         current timestamp as CREATED_TIME,
-		 current timestamp as  MODIFIED_TIME  
-  from 
-  (
-	  select USER_KEY
-	  from USER_ACCOUNT_TABLE
-	  where USER_NAME = 'Admin'
-  )u,
-  GROUP_TABLE g
-;
-  
-  
+   
