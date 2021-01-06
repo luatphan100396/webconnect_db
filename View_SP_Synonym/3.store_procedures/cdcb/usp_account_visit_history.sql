@@ -35,7 +35,8 @@ P1: BEGIN
 	
 		BEGIN 
 			DECLARE cursor1 CURSOR WITH RETURN for
-			SELECT  
+			SELECT
+				row_number()over(order by uvhTable.ACCESS_TIME) as No,
 				uvhTable.ACCESS_TIME,
 				uvhTable.IP_ADDRESS,
 				uvhTable.WEB_BROWSER,
@@ -54,7 +55,8 @@ P1: BEGIN
 		BEGIN
 		-- Declare cursor
 		DECLARE cursor10 CURSOR WITH RETURN for
-		SELECT  
+		SELECT
+			row_number()over(order by uvhTable.ACCESS_TIME) as No,  
 			uvhTable.ACCESS_TIME,
 			uvhTable.IP_ADDRESS,
 			uvhTable.WEB_BROWSER,
