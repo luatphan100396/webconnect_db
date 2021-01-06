@@ -1,14 +1,23 @@
- 
-CREATE OR REPLACE PROCEDURE usp_common_export_long_text (IN @text clob(2M), in export_file_name varchar(200))
---======================================================================================
---Author: Nghi Ta
---Created Date: 2020-06-25
---Description: Export long text
---Output: File location
---====================================================================================== 
+CREATE OR REPLACE PROCEDURE usp_Get_Common_Role
+--================================================================================
+--Author: Linh Pham
+--Created Date: 2020-01-06
+--Description: Get List role  
+--Output: 
+--       +Ds1: table with options used for Management
+--=================================================================================
+(
+	
+)
+	DYNAMIC RESULT SETS 1
 BEGIN
-	  
-        call SYSPROC.ADMIN_CMD( 'export to '||export_file_name||' of DEL modified by NOCHARDEL 
-      	  		                   select item from table (fn_Split_String_Into_Line('''||@text||'''))' );
- 	  
+	DECLARE cursor1 CURSOR WITH RETURN for
+
+	SELECT  
+		ROLE_NAME,
+		ROLE_SHORT_NAME 
+	FROM  ROLE_TABLE
+	ORDER BY ROLE_SHORT_NAME
+	WITH UR;
+	OPEN cursor1;
 END
