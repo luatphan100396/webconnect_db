@@ -72,3 +72,37 @@ INSERT INTO USER_INFO_TABLE
  where EMAIL_ADDR in ('nqdung2@tma.com.vn' );
  
  
+ INSERT INTO USER_INFO_TABLE
+ (   
+ 	FIRST_NAME,
+	LAST_NAME,
+	EMAIL_ADDR,
+	ORGANIZATION,
+	STATUS_CODE,
+	TITLE,
+	PHONE,
+	EMAIL_USE_IND,
+	CREATED_TIME,
+	MODIFIED_TIME 
+ )
+ VALUES('toan','tran','toandq72@gmail.com', 'TMA','A','','123',1,current timestamp,current timestamp
+       );
+ 
+ INSERT INTO USER_ACCOUNT_TABLE
+ (
+    USER_KEY,
+	USER_NAME,
+	PASSWORD,
+	CREATED_TIME,
+	MODIFIED_TIME 
+ ) 
+ 
+ select USER_KEY,
+        'toandq72' as user_name,
+        '$2b$12$8msO26s5I97jouiWfxD2w.ani20E2NilK6yYqZBDP2E6Cp6gPn0qq' as pass
+		,current timestamp
+		,current timestamp
+       
+ from USER_INFO_TABLE
+ where EMAIL_ADDR in ('toandq72@gmail.com' );
+ 
