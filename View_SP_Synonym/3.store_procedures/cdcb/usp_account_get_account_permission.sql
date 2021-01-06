@@ -43,7 +43,8 @@ where USER_KEY = v_USER_KEY
   BEGIN
 		DECLARE cursor10 CURSOR WITH RETURN for 
 		
-		 select  r.ROLE_SHORT_NAME
+		 select  r.ROLE_SHORT_NAME,
+		         r.ROLE_NAME 
 		 from   USER_ROLE_TABLE ur
 		 	inner join ROLE_TABLE r
 		      on ur.ROLE_KEY = r.ROLE_KEY
