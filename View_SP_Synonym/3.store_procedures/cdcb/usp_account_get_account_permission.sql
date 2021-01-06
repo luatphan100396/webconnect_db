@@ -1,74 +1,97 @@
-CREATE OR REPLACE PROCEDURE usp_Account_Visit_History
+CREATE OR REPLACE PROCEDURE usp_account_get_account_permission
 --======================================================
---Author: Linh Pham
---Created Date: 2020-12-28
---Description: Get visit history of accoun 
+--Author: Nghi Ta
+--Created Date: 2021-01-6
+--Description: Get account permission
 --Output:
---        +Ds1: list Visit History
+--        +Ds1: Table with features and permissions
 --======================================================
 (
-	IN @USER_NAME VARCHAR(30)
-	,IN @TIME_RANGE varchar(50)
-	,IN @page_number int
-	,IN @row_per_page int
+	IN @USER_NAME VARCHAR(128)
 )
-	DYNAMIC RESULT SETS 3
-P1: BEGIN
+	DYNAMIC RESULT SETS 10
+BEGIN 
 
-	DECLARE v_USER_KEY INT;	
-    DECLARE v_cutoff_timestamp timestamp;
-     
-     --SET VARIABLES
-     SET v_USER_KEY=(SELECT USER_KEY FROM USER_ACCOUNT_TABLE WHERE USER_NAME=@USER_NAME);
-     
-     set v_cutoff_timestamp = (select case when @TIME_RANGE ='last_hour' then current timestamp - 1 hours
-                                           when @TIME_RANGE ='last_24hour' then current timestamp - 24 hours
-                                           when @TIME_RANGE ='last_7days' then current timestamp - (7*24) hours
-                                           when @TIME_RANGE ='last_4weeks' then current timestamp - (4*7*24) hours
-                                           when @TIME_RANGE ='all_time' then null
-                                       end
-                             from sysibm.sysdummy1);
 
-	BEGIN
-	-- Declare cursor
-	DECLARE cursor1 CURSOR WITH RETURN for
-	SELECT  
-		uvhTable.ACCESS_TIME,
-		uvhTable.IP_ADDRESS,
-		uvhTable.WEB_BROWSER,
-		uvhTable.DEVICE
-	FROM USER_VISIT_HISTORY_TABLE uvhTable
-			WHERE uvhTable.USER_KEY= v_USER_KEY
-			AND (v_cutoff_timestamp is null or uvhTable.ACCESS_TIME >= v_cutoff_timestamp)
-			ORDER BY uvhTable.ACCESS_TIME
-		LIMIT @row_per_page
-		OFFSET (@page_number-1)*@row_per_page
-			with ur;
+DECLARE v_USER_KEY INT;
+SET v_USER_KEY= ( select USER_KEY
+				  from USER_ACCOUNT_TABLE
+				  where lower(user_name) = lower(@USER_NAME)
+	            );
+   
+ DECLARE GLOBAL TEMPORARY TABLE SESSION.TMP_AFFILIATIONS
+(
+    DATA_SOURCE_KEY INT, 
+	READ_PERMISSION CHAR(1), 
+	WRITE_PERMISSION char(1) 
+
+) WITH REPLACE ON COMMIT PRESERVE ROWS;
+
+INSERT INTO SESSION.TMP_AFFILIATIONS
+(
+	DATA_SOURCE_KEY,
+	READ_PERMISSION,
+	WRITE_PERMISSION
+)
+select DATA_SOURCE_KEY,
+		 READ_PERMISSION,
+		 WRITE_PERMISSION
+from USER_AFFILIATION_TABLE
+where USER_KEY = v_USER_KEY
+;
+
+ BEGIN
+	DECLARE cursor1 CURSOR WITH RETURN for 
 	
+	 select  d.SOURCE_SHORT_NAME as DRPC_SHORT_NAME,
+	         d.SOURCE_NAME as DRPC_NAME,
+	         READ_PERMISSION,
+	         WRITE_PERMISSION
+	 from SESSION.TMP_AFFILIATIONS uaf
+	 inner join DATA_SOURCE_TABLE d
+	    on uaf.DATA_SOURCE_KEY = d.DATA_SOURCE_KEY
+	    and d.SOURCE_SHORT_NAME in ('CA','WI','NC','UT')
+	 with ur;
+	     	  
+	  
 	OPEN cursor1;
+	
+	END;
+	
+	
+	BEGIN
+	DECLARE cursor2 CURSOR WITH RETURN for 
+	
+	 select  d.SOURCE_SHORT_NAME as LAB_SHORT_NAME,
+	         d.SOURCE_NAME as LAB_NAME,
+	         READ_PERMISSION,
+	         WRITE_PERMISSION
+	 from SESSION.TMP_AFFILIATIONS  uaf
+	 inner join DATA_SOURCE_TABLE d
+	    on uaf.DATA_SOURCE_KEY = d.DATA_SOURCE_KEY
+	    and d.CLASS_CODE ='L' and d.STATUS_CODE ='A'
+	 with ur;
+	     	  
+	  
+	OPEN cursor2;
+	
 	END;
 	
 	BEGIN
-	-- Declare cursor
-	DECLARE cursor3 CURSOR WITH RETURN for
-	SELECT  
-		@TIME_RANGE AS TIME_RANGE
-	FROM sysibm.sysdummy1
-			with ur;
+	DECLARE cursor3 CURSOR WITH RETURN for 
 	
+	 select  d.SOURCE_SHORT_NAME as NOMINATOR_SHORT_NAME,
+	         d.SOURCE_NAME as NOMINATOR_NAME,
+	         READ_PERMISSION,
+	         WRITE_PERMISSION
+	 from SESSION.TMP_AFFILIATIONS uaf
+	 inner join DATA_SOURCE_TABLE d
+	    on uaf.DATA_SOURCE_KEY = d.DATA_SOURCE_KEY
+	    and d.CLASS_CODE ='R' and d.STATUS_CODE ='A'
+	 with ur;
+	     	  
+	  
 	OPEN cursor3;
-	 END;
 	
-	BEGIN
-		DECLARE cursor2 CURSOR WITH RETURN FOR 	
-		 SELECT count(1) as Num_Recs
-		FROM USER_VISIT_HISTORY_TABLE uvhTable
-		INNER JOIN USER_ACCOUNT_TABLE u
-			ON uvhTable.USER_KEY=u.USER_KEY
-			WHERE uvhTable.USER_KEY= v_USER_KEY
-			AND (v_cutoff_timestamp is null or uvhTable.ACCESS_TIME >= v_cutoff_timestamp)
-			with ur;
-	
-	 OPEN cursor2;
 	END;
-END P1
+END

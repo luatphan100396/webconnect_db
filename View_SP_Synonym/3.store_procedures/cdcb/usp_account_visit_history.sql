@@ -11,6 +11,7 @@ CREATE OR REPLACE PROCEDURE usp_Account_Visit_History
 	,IN @TIME_RANGE varchar(50)
 	,IN @page_number int
 	,IN @row_per_page int
+	,IN @sort_direction varchar(5) default 'DESC'
 )
 	DYNAMIC RESULT SETS 3
 P1: BEGIN
@@ -29,35 +30,47 @@ P1: BEGIN
                                        end
                              from sysibm.sysdummy1);
 
-	BEGIN
-	-- Declare cursor
-	DECLARE cursor1 CURSOR WITH RETURN for
-	SELECT  
-		uvhTable.ACCESS_TIME,
-		uvhTable.IP_ADDRESS,
-		uvhTable.WEB_BROWSER,
-		uvhTable.DEVICE
-	FROM USER_VISIT_HISTORY_TABLE uvhTable
-			WHERE uvhTable.USER_KEY= v_USER_KEY
-			AND (v_cutoff_timestamp is null or uvhTable.ACCESS_TIME >= v_cutoff_timestamp)
-			ORDER BY uvhTable.ACCESS_TIME
-		LIMIT @row_per_page
-		OFFSET (@page_number-1)*@row_per_page
-			with ur;
 	
-	OPEN cursor1;
-	END;
+	IF @sort_direction ='ASC' then 
 	
-	BEGIN
-	-- Declare cursor
-	DECLARE cursor3 CURSOR WITH RETURN for
-	SELECT  
-		@TIME_RANGE AS TIME_RANGE
-	FROM sysibm.sysdummy1
-			with ur;
-	
-	OPEN cursor3;
-	 END;
+		BEGIN 
+			DECLARE cursor1 CURSOR WITH RETURN for
+			SELECT  
+				uvhTable.ACCESS_TIME,
+				uvhTable.IP_ADDRESS,
+				uvhTable.WEB_BROWSER,
+				uvhTable.DEVICE
+			FROM USER_VISIT_HISTORY_TABLE uvhTable
+					WHERE uvhTable.USER_KEY= v_USER_KEY
+					AND (v_cutoff_timestamp is null or uvhTable.ACCESS_TIME >= v_cutoff_timestamp)
+					ORDER BY uvhTable.ACCESS_TIME ASC
+				LIMIT @row_per_page
+				OFFSET (@page_number-1)*@row_per_page
+					with ur;
+			
+			OPEN cursor1;
+		END;
+	ELSEIF  @sort_direction ='DESC' THEN 
+		BEGIN
+		-- Declare cursor
+		DECLARE cursor10 CURSOR WITH RETURN for
+		SELECT  
+			uvhTable.ACCESS_TIME,
+			uvhTable.IP_ADDRESS,
+			uvhTable.WEB_BROWSER,
+			uvhTable.DEVICE
+		FROM USER_VISIT_HISTORY_TABLE uvhTable
+				WHERE uvhTable.USER_KEY= v_USER_KEY
+				AND (v_cutoff_timestamp is null or uvhTable.ACCESS_TIME >= v_cutoff_timestamp)
+				ORDER BY uvhTable.ACCESS_TIME DESC
+			LIMIT @row_per_page
+			OFFSET (@page_number-1)*@row_per_page
+				with ur;
+		
+		OPEN cursor10;
+		END;
+	END IF; 
+
 	
 	BEGIN
 		DECLARE cursor2 CURSOR WITH RETURN FOR 	
