@@ -1,10 +1,10 @@
-CREATE OR REPLACE PROCEDURE usp_Get_Common_Nominator
+CREATE OR REPLACE PROCEDURE usp_Get_Common_DRPC
  --================================================================================
 --Author: Linh Pham
 --Created Date: 2020-01-06
---Description: Get List Nominator
+--Description: Get List DRPC   
 --Output: 
---       +Ds1: table with options used for Management Account, search option
+--       +Ds1: table with options used for Management Account
 --=================================================================================
  (
  )
@@ -13,11 +13,10 @@ BEGIN
 	DECLARE cursor1 CURSOR WITH RETURN for
 
 	SELECT 
-		SOURCE_SHORT_NAME AS NOMINATOR_SOURCE_SHORT_NAME
-		,SOURCE_NAME AS NOMINATOR_SOURCE_NAME
+		SOURCE_SHORT_NAME AS DRPC_SOURCE_SHORT_NAME
+		,SOURCE_NAME AS DRPC_SOURCE_NAME
 		FROM DB2INST1.DATA_SOURCE_TABLE
-		WHERE CLASS_CODE  = 'R'
-		AND STATUS_CODE  = 'A' 
+		WHERE SOURCE_SHORT_NAME in ('CA','WI','NC','UT') 
 		ORDER BY SOURCE_NAME
 		WITH UR;
 		OPEN cursor1;
