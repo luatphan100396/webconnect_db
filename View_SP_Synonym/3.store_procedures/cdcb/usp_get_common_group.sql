@@ -4,7 +4,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Common_Group
 --Created Date: 2020-01-06
 --Description: Get List GROUP   
 --Output: 
---       +Ds1: table with options used for search option
+--       +Ds1: table with options used for search option in management account
 --=================================================================================
 (
 	
@@ -16,6 +16,7 @@ BEGIN
 	SELECT  
 		GROUP_NAME,
 		GROUP_SHORT_NAME 
+		,GROUP_NAME
 	FROM  GROUP_TABLE
 	WHERE GROUP_SHORT_NAME NOT IN 'ADMIN'
 	AND GROUP_SHORT_NAME NOT IN  'PUBLIC'
