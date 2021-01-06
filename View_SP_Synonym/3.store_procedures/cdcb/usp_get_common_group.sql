@@ -4,7 +4,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Common_Group
 --Created Date: 2020-01-06
 --Description: Get List GROUP   
 --Output: 
---       +Ds1: table with options used for search option in management account
+--       +Ds1: table with options used for search option
 --=================================================================================
 (
 	
@@ -14,7 +14,6 @@ BEGIN
 	DECLARE cursor1 CURSOR WITH RETURN for
 
 	SELECT  
-		GROUP_NAME,
 		GROUP_SHORT_NAME 
 		,GROUP_NAME
 	FROM  GROUP_TABLE
