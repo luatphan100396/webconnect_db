@@ -39,22 +39,39 @@ select DATA_SOURCE_KEY,
 from USER_AFFILIATION_TABLE
 where USER_KEY = v_USER_KEY
 ;
-
- BEGIN
-	DECLARE cursor1 CURSOR WITH RETURN for 
+ 
+  BEGIN
+		DECLARE cursor10 CURSOR WITH RETURN for 
+		
+		 select  r.ROLE_SHORT_NAME
+		 from   USER_ROLE_TABLE ur
+		 	inner join ROLE_TABLE r
+		      on ur.ROLE_KEY = r.ROLE_KEY
+		 where ur.USER_KEY = v_USER_KEY
+		   
+		 with ur;
+		     	  
+		  
+		OPEN cursor10;
 	
-	 select  d.SOURCE_SHORT_NAME as DRPC_SHORT_NAME,
-	         d.SOURCE_NAME as DRPC_NAME,
-	         READ_PERMISSION,
-	         WRITE_PERMISSION
-	 from SESSION.TMP_AFFILIATIONS uaf
-	 inner join DATA_SOURCE_TABLE d
-	    on uaf.DATA_SOURCE_KEY = d.DATA_SOURCE_KEY
-	    and d.SOURCE_SHORT_NAME in ('CA','WI','NC','UT')
-	 with ur;
-	     	  
-	  
-	OPEN cursor1;
+	END;
+	
+	
+   BEGIN
+		DECLARE cursor1 CURSOR WITH RETURN for 
+		
+		 select  trim(d.SOURCE_SHORT_NAME) as DRPC_SHORT_NAME,
+		         trim(d.SOURCE_NAME) as DRPC_NAME,
+		         READ_PERMISSION,
+		         WRITE_PERMISSION
+		 from SESSION.TMP_AFFILIATIONS uaf
+		 inner join DATA_SOURCE_TABLE d
+		    on uaf.DATA_SOURCE_KEY = d.DATA_SOURCE_KEY
+		    and d.SOURCE_SHORT_NAME in ('CA','WI','NC','UT')
+		 with ur;
+		     	  
+		  
+		OPEN cursor1;
 	
 	END;
 	
@@ -62,8 +79,8 @@ where USER_KEY = v_USER_KEY
 	BEGIN
 	DECLARE cursor2 CURSOR WITH RETURN for 
 	
-	 select  d.SOURCE_SHORT_NAME as LAB_SHORT_NAME,
-	         d.SOURCE_NAME as LAB_NAME,
+	 select  trim(d.SOURCE_SHORT_NAME) as LAB_SHORT_NAME,
+	         trim(d.SOURCE_NAME) as LAB_NAME,
 	         READ_PERMISSION,
 	         WRITE_PERMISSION
 	 from SESSION.TMP_AFFILIATIONS  uaf
@@ -80,8 +97,8 @@ where USER_KEY = v_USER_KEY
 	BEGIN
 	DECLARE cursor3 CURSOR WITH RETURN for 
 	
-	 select  d.SOURCE_SHORT_NAME as NOMINATOR_SHORT_NAME,
-	         d.SOURCE_NAME as NOMINATOR_NAME,
+	 select  trim(d.SOURCE_SHORT_NAME) as NOMINATOR_SHORT_NAME,
+	         trim(d.SOURCE_NAME) as NOMINATOR_NAME,
 	         READ_PERMISSION,
 	         WRITE_PERMISSION
 	 from SESSION.TMP_AFFILIATIONS uaf
