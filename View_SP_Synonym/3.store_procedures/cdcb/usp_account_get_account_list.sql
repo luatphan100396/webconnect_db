@@ -81,7 +81,7 @@ P1: BEGIN
 	) WITH REPLACE ON COMMIT PRESERVE ROWS;
 	--INSERT TEMP TABLE
 	SET input_xml =  xmlparse(document @Inputs);
-	SET LAST_LOGIN= (SELECT  MAX(ID) FROM USER_VISIT_HISTORY_TABLE WHERE ID>1);
+ 
 		
 		
 	----- insert
@@ -309,9 +309,14 @@ P1: BEGIN
 			ON t.USER_KEY=uG.USER_KEY
 		LEFT JOIN GROUP_TABLE gr
 			ON uG.GROUP_KEY= gr.GROUP_KEY
-		LEFT JOIN USER_VISIT_HISTORY_TABLE uvh
-			ON uAcc.USER_KEY=uvh.USER_KEY
-			AND uvh.ID=LAST_LOGIN
+		LEFT JOIN  
+		(
+		  select USER_KEY, MAX(ACCESS_TIME) AS ACCESS_TIME
+		  from USER_VISIT_HISTORY_TABLE
+		  group by USER_KEY
+		    
+		)uvh  
+			ON uAcc.USER_KEY=uvh.USER_KEY 
 		LIMIT @row_per_page
 		OFFSET (@page_number-1)*@row_per_page
 		 
@@ -342,9 +347,14 @@ P1: BEGIN
 			ON t.USER_KEY=uG.USER_KEY
 		LEFT JOIN GROUP_TABLE gr
 			ON uG.GROUP_KEY= gr.GROUP_KEY
-		LEFT JOIN USER_VISIT_HISTORY_TABLE uvh
-			ON uAcc.USER_KEY=uvh.USER_KEY
-			AND uvh.ID=LAST_LOGIN
+		LEFT JOIN  
+		(
+		  select USER_KEY, MAX(ACCESS_TIME) AS ACCESS_TIME
+		  from USER_VISIT_HISTORY_TABLE
+		  group by USER_KEY
+		    
+		)uvh  
+			ON uAcc.USER_KEY=uvh.USER_KEY 
 		WITH UR;
 		    
 	-- Cursor left open for client application

@@ -46,7 +46,11 @@ MODIFIED_TIME
 	  from USER_ACCOUNT_TABLE
 	  where USER_NAME = 'Admin'
   )u,
-  GROUP_TABLE g
+    (
+	  select GROUP_KEY
+	  from GROUP_TABLE
+	  where GROUP_SHORT_NAME = 'ADMIN'
+  )g
 ;
   
 
@@ -71,5 +75,3 @@ MODIFIED_TIME
   )u,ROLE_TABLE r
 ;  
      
-  
-   

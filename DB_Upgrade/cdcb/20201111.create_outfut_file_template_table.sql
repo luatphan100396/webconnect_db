@@ -185,3 +185,35 @@ values
 CURRENT DATE 
 )
 ;
+
+INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE
+(
+	NAME,
+	TYPE,
+	TEMPLATE_DETAIL,
+	PREFIX_OUTPUT_NAME,
+	CREATE_DATE
+)
+VALUES
+('ANIM_FORMATTED_PEDIGREE',
+'JSON',
+'   {      
+        "Sex": "<SEX_CODE>",
+		"Animal": "<PREFERED_ID>",
+		"Sire": "<SIRE_ID>",
+		"Dam": "<DAM_ID>",
+		"Alias": "<ALIAS_ID>",
+		"DOB": "<BIRTH_DATE>",
+		"Source_Code": "<SRC>", 
+		"Mod_Date": "<MODIFY_DATE>",
+		"Multi_Birth_Code": "<MBC>",
+		"Registry_Status": "<REG>",
+		"Codes": "<CODES>",
+		"RHA": "<RHA>",
+		"Recessives": "<RECESSIVES>",
+		"Long_Name": "<LONG_NAME>"  
+     }',
+'Animal_formatted_pedigree',
+CURRENT DATE 
+)
+;

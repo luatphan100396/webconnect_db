@@ -8,7 +8,8 @@ CREATE OR REPLACE PROCEDURE usp_Account_Add_Edit_Account
 --        +Ds1: 1 if success. Failed will raise exception
 --======================================================
 (
-	@inputs VARCHAR(30000)
+	@inputs VARCHAR(30000),
+	@is_add_new char(1)
 )
 	DYNAMIC RESULT SETS 10
 	LANGUAGE SQL
@@ -185,7 +186,36 @@ P1: BEGIN
 			Value       VARCHAR(1000)  PATH 'value' 
 			) AS XML_BOOKS;
 	   
-	-- Clean duplicate on DATA_SOURCE_TABLE and insert data into temporary table
+
+	   
+	   -- INPUT VALIDATION
+		IF  v_FIRST_NAME IS NULL
+			OR v_LAST_NAME IS NULL
+			OR v_EMAIL_ADDRESS IS NULL
+			OR v_USER_NAME IS NULL  
+			OR v_GROUP IS NULL
+			OR v_STATUS_CODE IS NULL
+		THEN
+		 
+	 	 SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = 'Input is not valid';
+		
+		END IF;
+	  
+	  IF @is_add_new = '1' THEN
+		IF (SELECT FN_CHECK_EXIST_USERNAME(v_USER_NAME) FROM SYSIBM.SYSDUMMY1) = 1
+		THEN
+			SET ERR_MESSAGE = 'User name "'|| v_USER_NAME|| '" has already existed';
+			SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
+		END IF;
+		
+		IF (SELECT FN_CHECK_EXIST_EMAILADDRESS(v_EMAIL_ADDRESS) FROM SYSIBM.SYSDUMMY1) = 1
+		THEN
+			SET ERR_MESSAGE = 'Email address "'|| v_EMAIL_ADDRESS|| '" has already existed';
+			SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
+		END IF;
+     END IF;
+     
+     	-- Clean duplicate on DATA_SOURCE_TABLE and insert data into temporary table
 	DECLARE GLOBAL TEMPORARY TABLE SESSION.Tmp_DATA_SOURCE_TABLE
 	(
 		DATA_SOURCE_KEY INT,
@@ -222,21 +252,6 @@ P1: BEGIN
     	  from DATA_SOURCE_TABLE 
     	)
     where RN=1;
-	   
-	   -- INPUT VALIDATION
-		IF  v_FIRST_NAME IS NULL
-			OR v_LAST_NAME IS NULL
-			OR v_EMAIL_ADDRESS IS NULL
-			OR v_USER_NAME IS NULL  
-			OR v_GROUP IS NULL
-			OR v_STATUS_CODE IS NULL
-		THEN
-		 
-	 	 SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = 'Input is not valid';
-		
-		END IF;
-	  
-	  
 	-- Add/Edit user information
 	set v_USER_KEY = ( select USER_KEY
                       from USER_ACCOUNT_TABLE 

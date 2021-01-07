@@ -13,7 +13,7 @@ LANGUAGE SQL
 BEGIN 
 	DECLARE IS_EXISTED SMALLINT DEFAULT 0;
 	
-	SET IS_EXISTED = (SELECT case when COUNT(1)=1 then 1 else 0 end
+	SET IS_EXISTED = (SELECT case when COUNT(1)>=1 then 1 else 0 end
 					  from USER_INFO_TABLE   
 				      where  EMAIL_ADDR = @EMAIL_ADDRESS  
 					  );
