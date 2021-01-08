@@ -15,7 +15,7 @@ BEGIN
 	
 	SET IS_EXISTED = (SELECT case when COUNT(1)>=1 then 1 else 0 end
 					  from USER_ACCOUNT_TABLE uac 
-				      where uac.USER_NAME = @USER_NAME 
+				      where lower(uac.USER_NAME) = lower(@USER_NAME)
 					  );
  
 	RETURN IS_EXISTED;

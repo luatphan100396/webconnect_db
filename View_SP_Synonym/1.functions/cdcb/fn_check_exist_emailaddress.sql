@@ -15,7 +15,7 @@ BEGIN
 	
 	SET IS_EXISTED = (SELECT case when COUNT(1)>=1 then 1 else 0 end
 					  from USER_INFO_TABLE   
-				      where  EMAIL_ADDR = @EMAIL_ADDRESS  
+				      where  lower(EMAIL_ADDR) = lower(@EMAIL_ADDRESS)  
 					  );
  
 	RETURN IS_EXISTED;

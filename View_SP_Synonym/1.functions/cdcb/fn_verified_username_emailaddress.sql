@@ -18,8 +18,8 @@ BEGIN
 					  from USER_ACCOUNT_TABLE uac
 				      inner join USER_INFO_TABLE u
 				           on u.USER_KEY = uac.USER_KEY
-				       where uac.USER_NAME = @USER_NAME
-				            and u.EMAIL_ADDR = @EMAIL_ADDRESS
+				       where lower(uac.USER_NAME) = lower(@USER_NAME)
+				            and lower(u.EMAIL_ADDR) = lower(@EMAIL_ADDRESS)
 								 );
  
 	RETURN IS_MATCHED;

@@ -64,12 +64,14 @@ P1: BEGIN
 	
  	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpAffiliates
 	(
-		SOURCE_SHORT_NAME      VARCHAR(30) 
+		SOURCE_SHORT_NAME      VARCHAR(30),
+		CLASS_CODE CHAR(1)
 	) WITH REPLACE ON COMMIT PRESERVE ROWS; 
 	 
 	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpAffiliatePermission 
 	(
 		SOURCE_SHORT_NAME   VARCHAR(30),
+		CLASS_CODE CHAR(1),
 		PERMISSION CHAR(1)
 	) WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
@@ -161,10 +163,19 @@ P1: BEGIN
 	 where upper(field) ='ROLE';
 	 
 	
-	 INSERT INTO  SESSION.TmpAffiliates(SOURCE_SHORT_NAME)
-	 select value 
+	 INSERT INTO  SESSION.TmpAffiliates
+	 (SOURCE_SHORT_NAME,
+	  CLASS_CODE
+	 )
+	 select value as SOURCE_SHORT_NAME, 
+	        case when field='DRPC' then 'D'
+	             when field='NOMINATOR' then 'R'
+	             when field='LAB' then 'L'
+	        end as CLASS_CODE
+	        
+	           
 	 from SESSION.TmpFilterinputsMultiSelect 
-	 where upper(field) IN('DRPC','NOMINATOR','LAB');
+	 where field IN('DRPC','NOMINATOR','LAB');
 						
 	 	
 		
@@ -173,7 +184,8 @@ P1: BEGIN
 	     SOURCE_SHORT_NAME,
 	     PERMISSION
      )				 
-	 SELECT  
+	
+	( SELECT  
 			 nullif(trim(XML_BOOKS.Field),'') as Field,
 			 nullif(trim(XML_BOOKS.Value),'') as Value 
 	 FROM  
@@ -184,7 +196,8 @@ P1: BEGIN
 			 
 			Field      VARCHAR(128)  PATH 'field',
 			Value       VARCHAR(1000)  PATH 'value' 
-			) AS XML_BOOKS;
+			) AS XML_BOOKS
+	 );
 	   
 
 	   
@@ -235,12 +248,12 @@ P1: BEGIN
 					CLASS_CODE,
 					SOURCE_SHORT_NAME,
 					STATUS_CODE, 
-					row_number()over(partition by SOURCE_SHORT_NAME order by  case when STATUS_CODE ='A' then 1
-																			when STATUS_CODE ='S' then 2
-																			when STATUS_CODE ='I' then 3
-																			when STATUS_CODE ='D' then 4
-																			else 999
-																	   end)
+					row_number()over(partition by SOURCE_SHORT_NAME,CLASS_CODE  order by  case when STATUS_CODE ='A' then 1
+																								when STATUS_CODE ='S' then 2
+																								when STATUS_CODE ='I' then 3
+																								when STATUS_CODE ='D' then 4
+																								else 999
+																						   end)
 			  as RN
     	  from DATA_SOURCE_TABLE 
     	)
@@ -428,7 +441,8 @@ P1: BEGIN
 		    WHERE DATA_SOURCE_KEY NOT IN (select r.DATA_SOURCE_KEY  
 										  from SESSION.TmpAffiliates t
 										  inner join SESSION.Tmp_DATA_SOURCE_TABLE r
-									      on t.SOURCE_SHORT_NAME = r.SOURCE_SHORT_NAME 
+										      on t.SOURCE_SHORT_NAME = r.SOURCE_SHORT_NAME 
+										      and t.CLASS_CODE = r.CLASS_CODE 
 		                     ) 
 		        and u.USER_KEY = v_USER_KEY;
 		    
@@ -450,6 +464,7 @@ P1: BEGIN
 					FROM SESSION.TmpAffiliates a
 					inner join SESSION.Tmp_DATA_SOURCE_TABLE s
 					   on a.SOURCE_SHORT_NAME = s.SOURCE_SHORT_NAME
+					   and a.CLASS_CODE = s.CLASS_CODE
 					left JOIN SESSION.TmpAffiliatePermission p
 					   on a.source_short_name = p.source_short_name 
 					group by s.DATA_SOURCE_KEY
