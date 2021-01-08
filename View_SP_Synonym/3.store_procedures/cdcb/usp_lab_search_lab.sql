@@ -1,0 +1,50 @@
+CREATE OR REPLACE PROCEDURE usp_Lab_Search_Lab
+--================================================================================
+--Author: Tri Do
+--Created Date: 2021-01-07
+--Description: Search Lab
+--Output: 
+--       +Ds1: list from search option
+--       +Ds2: total records
+--=================================================================================
+(
+	IN @name VARCHAR(40),
+	IN @page_number INT,
+	IN @row_per_page INT
+)
+	DYNAMIC RESULT SETS 10
+P1: BEGIN
+
+	BEGIN
+	-- Declare cursor
+	DECLARE cursor1 CURSOR WITH RETURN for
+		
+		SELECT
+			DATA_SOURCE_KEY
+			,row_number()over(order by SOURCE_NAME) as No
+			,dSTable.SOURCE_SHORT_NAME
+			,dSTable.SOURCE_NAME
+			,dSTable.STATUS_CODE
+		FROM DATA_SOURCE_TABLE dSTable
+		WHERE CLASS_CODE = 'L' AND STATUS_CODE IN ('A', 'S', 'I')
+					AND (@name IS NULL OR LOWER(dSTable.SOURCE_NAME) LIKE '%'||LOWER(@name)||'%')
+		ORDER BY dSTable.SOURCE_NAME ASC
+		LIMIT @row_per_page
+		OFFSET (@page_number-1)*@row_per_page
+		WITH UR;
+		    
+	-- Cursor left open for client application
+	OPEN cursor1;
+	END;
+
+	BEGIN
+		DECLARE cursor2 CURSOR WITH RETURN FOR 	
+		SELECT count(1) as Num_Recs
+		FROM DATA_SOURCE_TABLE dSTable
+		WHERE CLASS_CODE = 'L' AND STATUS_CODE IN ('A', 'S', 'I')
+					AND (@name IS NULL OR LOWER(dSTable.SOURCE_NAME) LIKE '%'||LOWER(@name)||'%')
+		WITH UR; 
+	
+	OPEN cursor2;
+   	END;
+END P1
