@@ -75,7 +75,7 @@ BEGIN
 	       v_DEVICE AS DEVICE
 	
 	FROM USER_ACCOUNT_TABLE u
-	WHERE USER_NAME = v_USER_NAME;
+	WHERE lower(USER_NAME) = lower(v_USER_NAME);
 	
 	 
 	begin
