@@ -1,4 +1,3 @@
- 
 CREATE OR REPLACE PROCEDURE usp_Account_Delete_Account
 --======================================================
 --Author: Nghi Ta
@@ -29,6 +28,13 @@ P1: BEGIN
 		
 		SET v_USER_KEY = (select USER_KEY from USER_ACCOUNT_TABLE WHERE lower(USER_NAME) = lower(@USER_NAME) limit 1);
 	   
+	   IF  v_USER_KEY IS NULL 
+		THEN
+		 
+		 set err_message = 'The account "'||@USER_NAME||'" does not exist';
+	 	 SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = err_message;
+		
+		END IF;
  
  BEGIN  
  
@@ -176,4 +182,4 @@ P1: BEGIN
 					
 					
 			 END IF ;  
-END P1 
+END P1
