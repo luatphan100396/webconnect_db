@@ -5,7 +5,8 @@ CREATE OR REPLACE FUNCTION fn_Check_Exist_EmailAddress
 --Description: Check whether the input Email Address has been existed
 --======================================================
 (
-	@EMAIL_ADDRESS VARCHAR(200)
+	@EMAIL_ADDRESS VARCHAR(200),
+	@USER_KEY INT 
 ) 
 RETURNS INTEGER
 
@@ -16,6 +17,7 @@ BEGIN
 	SET IS_EXISTED = (SELECT case when COUNT(1)>=1 then 1 else 0 end
 					  from USER_INFO_TABLE   
 				      where  lower(EMAIL_ADDR) = lower(@EMAIL_ADDRESS)  
+				             and USER_KEY <> @USER_KEY
 					  );
  
 	RETURN IS_EXISTED;

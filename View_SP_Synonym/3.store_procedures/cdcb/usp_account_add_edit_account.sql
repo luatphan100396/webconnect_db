@@ -162,6 +162,7 @@ P1: BEGIN
 	SET v_EMAIL_USE_IND = (SELECT VALUE FROM SESSION.TmpGetinputs WHERE UPPER(Field) ='INCLUDE_EMAIL' LIMIT 1 with UR);
  	SET v_USER_NAME = (SELECT VALUE FROM SESSION.TmpGetinputs WHERE UPPER(Field) ='USER_NAME' LIMIT 1 with UR); 
  	SET v_STATUS_CODE = (SELECT VALUE FROM SESSION.TmpGetinputs WHERE UPPER(Field) ='STATUS_CODE' LIMIT 1 with UR); 
+ 	SET v_USER_KEY = (SELECT VALUE FROM SESSION.TmpGetinputs WHERE UPPER(Field) ='USER_KEY' LIMIT 1 with UR);
 	
 	SET v_CURRENT_TIME=(SELECT current timestamp  from sysibm.sysdummy1); 
 	
@@ -219,8 +220,7 @@ P1: BEGIN
             Value
      from SESSION.TmpFilterinputsMultiSelect_permission;		 
 	 
-
-	   
+ 	   
 	   -- INPUT VALIDATION
 		IF  v_FIRST_NAME IS NULL
 			OR v_LAST_NAME IS NULL
@@ -234,19 +234,19 @@ P1: BEGIN
 		
 		END IF;
 	  
-	  IF @is_add_new = '1' THEN
-		IF (SELECT FN_CHECK_EXIST_USERNAME(v_USER_NAME) FROM SYSIBM.SYSDUMMY1) = 1
+	 
+		IF (SELECT FN_CHECK_EXIST_USERNAME(v_USER_NAME,v_USER_KEY) FROM SYSIBM.SYSDUMMY1) = 1
 		THEN
 			SET ERR_MESSAGE = 'User name "'|| v_USER_NAME|| '" has already existed';
 			SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
 		END IF;
 		
-		IF (SELECT FN_CHECK_EXIST_EMAILADDRESS(v_EMAIL_ADDRESS) FROM SYSIBM.SYSDUMMY1) = 1
+		IF (SELECT FN_CHECK_EXIST_EMAILADDRESS(v_EMAIL_ADDRESS,v_USER_KEY) FROM SYSIBM.SYSDUMMY1) = 1
 		THEN
 			SET ERR_MESSAGE = 'Email address "'|| v_EMAIL_ADDRESS|| '" has already existed';
 			SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
 		END IF;
-     END IF;
+    
      
      	-- Clean duplicate on DATA_SOURCE_TABLE and insert data into temporary table
   
@@ -279,11 +279,7 @@ P1: BEGIN
     	)
     where RN=1;
 	-- Add/Edit user information
-	set v_USER_KEY = ( select USER_KEY
-                      from USER_ACCOUNT_TABLE 
-                      where  lower(v_USER_NAME) = lower(USER_NAME)
-                      limit 1 
-                      ); 
+
  
 	 --BEGIN work:
  
@@ -296,7 +292,7 @@ P1: BEGIN
 		  MERGE INTO USER_INFO_TABLE as A
 			 using
 			 ( 
-				 SELECT coalesce(v_USER_KEY,-999999) as USER_KEY
+				 SELECT  v_USER_KEY as USER_KEY
 				 FROM sysibm.sysdummy1 
 			 )AS B
 			 ON  A.USER_KEY = B.USER_KEY 

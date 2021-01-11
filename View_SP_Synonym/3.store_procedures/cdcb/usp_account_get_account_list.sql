@@ -279,6 +279,7 @@ P1: BEGIN
 	DECLARE cursor1 CURSOR WITH RETURN for
 		
 		SELECT 
+		    t.USER_KEY,
 			uAcc.USER_NAME,
 			uInfo.FIRST_NAME,
 			uInfo.LAST_NAME,

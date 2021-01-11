@@ -198,6 +198,7 @@ VALUES
 ('ANIM_FORMATTED_PEDIGREE',
 'JSON',
 '   {      
+        "Input": "<INPUT>",
         "Sex": "<SEX_CODE>",
 		"Animal": "<PREFERED_ID>",
 		"Sire": "<SIRE_ID>",
@@ -217,4 +218,3 @@ VALUES
 CURRENT DATE 
 )
 ;
-
