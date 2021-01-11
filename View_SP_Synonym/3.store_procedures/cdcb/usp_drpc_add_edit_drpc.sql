@@ -99,8 +99,8 @@ P1: BEGIN
 		  MERGE INTO DATA_SOURCE_TABLE as dest
 			using
 			( 
-				SELECT v_DATA_SOURCE_KEY as DATA_SOURCE_KEY
-				FROM sysibm.sysdummy1 
+				SELECT coalesce(v_DATA_SOURCE_KEY,-999999) as DATA_SOURCE_KEY
+				FROM sysibm.sysdummy1
 			)AS src
 			ON  dest.DATA_SOURCE_KEY = src.DATA_SOURCE_KEY
 			WHEN NOT MATCHED THEN
