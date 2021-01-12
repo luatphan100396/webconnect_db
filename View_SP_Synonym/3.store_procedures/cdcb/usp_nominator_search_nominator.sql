@@ -1,0 +1,59 @@
+CREATE OR REPLACE PROCEDURE usp_Nominator_Search_Nominator
+--================================================================================
+--Author: Tri Do
+--Created Date: 2021-01-12
+--Description: Search Nominator
+--Output: 
+--       +Ds1: list from search option
+--       +Ds2: total records
+--=================================================================================
+(
+	IN @name VARCHAR(40),
+	IN @page_number INT,
+	IN @row_per_page INT
+)
+	DYNAMIC RESULT SETS 10
+P1: BEGIN
+
+	BEGIN
+	-- Declare cursor
+	DECLARE cursor1 CURSOR WITH RETURN for
+		
+		WITH CTE AS (
+			SELECT DISTINCT DATA_SOURCE_KEY AS A
+			FROM USER_AFFILIATION_TABLE
+		)
+
+		SELECT
+			DATA_SOURCE_KEY
+			,row_number()over(order by SOURCE_NAME) as No
+			,dSTable.SOURCE_SHORT_NAME
+			,dSTable.SOURCE_NAME
+			,dSTable.STATUS_CODE
+			,CASE WHEN CTE.A IS NULL THEN '1'
+					ELSE '0'
+			END AS IS_DELETE
+		FROM DATA_SOURCE_TABLE dSTable
+		LEFT JOIN CTE ON CTE.A = dSTable.DATA_SOURCE_KEY
+		WHERE CLASS_CODE = 'R' AND STATUS_CODE IN ('A', 'S', 'I')
+					AND (@name IS NULL OR LOWER(dSTable.SOURCE_NAME) LIKE '%'||LOWER(@name)||'%')
+		ORDER BY dSTable.SOURCE_NAME ASC
+		LIMIT @row_per_page
+		OFFSET (@page_number-1)*@row_per_page
+		WITH UR;
+		    
+	-- Cursor left open for client application
+	OPEN cursor1;
+	END;
+
+	BEGIN
+		DECLARE cursor2 CURSOR WITH RETURN FOR 	
+		SELECT count(1) as Num_Recs
+		FROM DATA_SOURCE_TABLE dSTable
+		WHERE CLASS_CODE = 'R' AND STATUS_CODE IN ('A', 'S', 'I')
+					AND (@name IS NULL OR LOWER(dSTable.SOURCE_NAME) LIKE '%'||LOWER(@name)||'%')
+		WITH UR; 
+	
+	OPEN cursor2;
+   	END;
+END P1
