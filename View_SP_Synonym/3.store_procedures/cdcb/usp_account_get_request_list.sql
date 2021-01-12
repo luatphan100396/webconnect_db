@@ -63,7 +63,9 @@ P1: BEGIN
 			aReqTable.PHONE,
 			aReqTable.ORGANIZATION,
 			aReqTable.TITLE,
-			aReqTable.STATUS
+			aReqTable.STATUS,
+			aReqTable.REQUESTED_CREDENTIAL,
+			aReqTable.EMAIL_USE_IND
 		FROM ACCOUNT_REQUEST_TABLE aReqTable
 		WHERE 	
 			(v_SEARCH_BY IS NULL 
