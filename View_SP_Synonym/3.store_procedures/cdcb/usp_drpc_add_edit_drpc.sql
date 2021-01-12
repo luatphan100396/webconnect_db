@@ -1,8 +1,8 @@
-CREATE OR REPLACE PROCEDURE usp_Lab_Add_Edit_Lab
+CREATE OR REPLACE PROCEDURE usp_DRPC_Add_Edit_DRPC
 --======================================================
 --Author: Tri Do
---Created Date: 2021-01-07
---Description: Add Edit lab
+--Created Date: 2021-01-08
+--Description: Add Edit DRPC
 --Output:
 --        +Ds1: 1 if success. Failed will raise exception
 --======================================================
@@ -77,7 +77,7 @@ P1: BEGIN
 	END IF;
 	
 	IF @is_add_new = '1' THEN
-	IF (EXISTS(SELECT 1 FROM DATA_SOURCE_TABLE WHERE LOWER(SOURCE_SHORT_NAME) = LOWER(v_SOURCE_SHORT_NAME) AND CLASS_CODE = 'L'))
+	IF (EXISTS(SELECT 1 FROM DATA_SOURCE_TABLE WHERE LOWER(SOURCE_SHORT_NAME) = LOWER(v_SOURCE_SHORT_NAME) AND CLASS_CODE = 'D'))
 	THEN
 		SET ERR_MESSAGE = 'Short name "'|| v_SOURCE_SHORT_NAME|| '" has already existed';
 		SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
@@ -122,7 +122,7 @@ P1: BEGIN
 			) 
 			VALUES (
 				v_NEW_DATA_SOURCE_KEY
-				,'L'
+				,'D'
 				,''
 				,v_SOURCE_SHORT_NAME
 				,v_SOURCE_NAME
