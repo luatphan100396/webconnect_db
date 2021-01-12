@@ -26,6 +26,7 @@ P1: BEGIN
 	DECLARE v_USER_NAME VARCHAR(128);
 	DECLARE v_PASSWORD VARCHAR(300) default '$2b$12$8msO26s5I97jouiWfxD2w.ani20E2NilK6yYqZBDP2E6Cp6gPn0qq'; 
 	DECLARE v_STATUS_CODE CHAR(1);
+	DECLARE v_IS_INCLUDE_PERMISSION smallint;
 	
 	DECLARE v_USER_KEY int;
 	
@@ -163,6 +164,13 @@ P1: BEGIN
  	SET v_USER_NAME = (SELECT VALUE FROM SESSION.TmpGetinputs WHERE UPPER(Field) ='USER_NAME' LIMIT 1 with UR); 
  	SET v_STATUS_CODE = (SELECT VALUE FROM SESSION.TmpGetinputs WHERE UPPER(Field) ='STATUS_CODE' LIMIT 1 with UR); 
  	SET v_USER_KEY = (SELECT VALUE FROM SESSION.TmpGetinputs WHERE UPPER(Field) ='USER_KEY' LIMIT 1 with UR);
+ 	
+ 	
+ 	select 1 into v_IS_INCLUDE_PERMISSION
+ 	from sysibm.sysdummy1
+ 	where @inputs like '%<permission_info>%' and @inputs like '%</permission_info>%'   ; 
+ 	
+ 	SET v_IS_INCLUDE_PERMISSION = coalesce(v_IS_INCLUDE_PERMISSION,0);
 	
 	SET v_CURRENT_TIME=(SELECT current timestamp  from sysibm.sysdummy1); 
 	
@@ -226,8 +234,9 @@ P1: BEGIN
 			OR v_LAST_NAME IS NULL
 			OR v_EMAIL_ADDRESS IS NULL
 			OR v_USER_NAME IS NULL  
-			OR v_GROUP IS NULL
+			OR (v_GROUP IS NULL AND v_IS_INCLUDE_PERMISSION =1)
 			OR v_STATUS_CODE IS NULL
+			OR v_USER_KEY IS NULL
 		THEN
 		 
 	 	 SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = 'Input is not valid';
@@ -375,144 +384,146 @@ P1: BEGIN
 		;
 			 
 			 
-		   /* Set user into group */
-		    
-		     MERGE INTO USER_GROUP_TABLE as A
-			 using
-			 ( 
-				 select
-		         v_USER_KEY AS USER_KEY,
-		         g.GROUP_KEY 
-			  from  GROUP_TABLE g
-			  where upper(GROUP_SHORT_NAME) = v_GROUP limit 1  
-			 )AS B
-			 ON  A.USER_KEY = B.USER_KEY 
-			 WHEN NOT MATCHED THEN
-			 INSERT
-			(  
-				USER_KEY,
-				GROUP_KEY,
-				CREATED_TIME,
-				MODIFIED_TIME 
-			) 
-			VALUES (
-			    B.USER_KEY,
-				B.GROUP_KEY, 
-				v_CURRENT_TIME,
-				v_CURRENT_TIME
-			)
-			WHEN MATCHED THEN UPDATE
-			SET  
-				GROUP_KEY = B.GROUP_KEY, 
-				MODIFIED_TIME = v_CURRENT_TIME  
-		;
-		  
-			 
-		   
-		         
-		 DELETE FROM USER_ROLE_TABLE u 
-		 WHERE ROLE_KEY NOT IN (select r.ROLE_KEY  
-								from SESSION.TmpRoles t
-								inner join ROLE_TABLE r
-							        on t.ROLE = r.ROLE_SHORT_NAME 
-		                     ) 
-		        and u.USER_KEY = v_USER_KEY;
-		 
-		  
-			MERGE INTO USER_ROLE_TABLE as A
-			 using
-			 ( 
-				   select
-			         v_USER_KEY AS USER_KEY,
-			         r.ROLE_KEY 
-				  from SESSION.TmpRoles t
-				  inner join ROLE_TABLE r
-				      on t.ROLE = r.ROLE_SHORT_NAME
-			 )AS B
-			 ON  A.USER_KEY = B.USER_KEY AND A.ROLE_KEY = B.ROLE_KEY 
-			 WHEN NOT MATCHED THEN
-			 INSERT
-			(  
-				USER_KEY,
-				ROLE_KEY,
-				CREATED_TIME,
-				MODIFIED_TIME 
-			) 
-			VALUES (
-			    B.USER_KEY,
-				B.ROLE_KEY, 
-				v_CURRENT_TIME,
-				v_CURRENT_TIME
-			)
-			WHEN MATCHED THEN UPDATE
-			SET    
-				MODIFIED_TIME = v_CURRENT_TIME  
-		    ;
-			  
-			   
-			 
-			/*  Update user affiliations  */
-			  
-			DELETE FROM USER_AFFILIATION_TABLE u 
-		    WHERE DATA_SOURCE_KEY NOT IN (select r.DATA_SOURCE_KEY  
-										  from SESSION.TmpAffiliates t
-										  inner join SESSION.Tmp_DATA_SOURCE_TABLE r
-										      on t.SOURCE_SHORT_NAME = r.SOURCE_SHORT_NAME 
-										      and t.CLASS_CODE = r.CLASS_CODE 
-		                     ) 
-		        and u.USER_KEY = v_USER_KEY;
-		    
-					
-					
-		        
-			 MERGE INTO USER_AFFILIATION_TABLE as A
+		  IF v_IS_INCLUDE_PERMISSION = 1 THEN
+		
+			   /* Set user into group */
+			    
+			     MERGE INTO USER_GROUP_TABLE as A
 				 using
 				 ( 
-					  SELECT v_USER_KEY AS USER_KEY
-					       ,s.DATA_SOURCE_KEY
-						  ,max(case when  p.PERMISSION='R' then 1
-						            else 0 
-						   end) as READ_PERMISSION
-					      ,max(case when  p.PERMISSION='W' then 1
-						            else 0 
-						   end) as WRITE_PERMISSION 
-				 
-					FROM SESSION.TmpAffiliates a
-					inner join SESSION.Tmp_DATA_SOURCE_TABLE s
-					   on a.SOURCE_SHORT_NAME = s.SOURCE_SHORT_NAME
-					   and a.CLASS_CODE = s.CLASS_CODE
-					left JOIN SESSION.TmpAffiliatePermission p
-					   on a.source_short_name = p.source_short_name 
-					   and a.ID = p.ID
-					group by s.DATA_SOURCE_KEY
-					
+					 select
+			         v_USER_KEY AS USER_KEY,
+			         g.GROUP_KEY 
+				  from  GROUP_TABLE g
+				  where upper(GROUP_SHORT_NAME) = v_GROUP limit 1  
 				 )AS B
-				 ON  A.USER_KEY = B.USER_KEY  AND A.DATA_SOURCE_KEY = B.DATA_SOURCE_KEY 
+				 ON  A.USER_KEY = B.USER_KEY 
 				 WHEN NOT MATCHED THEN
 				 INSERT
 				(  
-					  USER_KEY,
-					  DATA_SOURCE_KEY,
-					  READ_PERMISSION,
-					  WRITE_PERMISSION,
-					  CREATED_TIME,
-					  MODIFIED_TIME 
+					USER_KEY,
+					GROUP_KEY,
+					CREATED_TIME,
+					MODIFIED_TIME 
 				) 
 				VALUES (
-					   B.USER_KEY,
-					   B.DATA_SOURCE_KEY,
-					   B.READ_PERMISSION,
-					   B.WRITE_PERMISSION, 
-					   v_CURRENT_TIME,
-					   v_CURRENT_TIME
+				    B.USER_KEY,
+					B.GROUP_KEY, 
+					v_CURRENT_TIME,
+					v_CURRENT_TIME
 				)
 				WHEN MATCHED THEN UPDATE
-				SET   
-					READ_PERMISSION = 	B.READ_PERMISSION,
-					WRITE_PERMISSION = 	B.WRITE_PERMISSION,  
-					MODIFIED_TIME = v_CURRENT_TIME 
+				SET  
+					GROUP_KEY = B.GROUP_KEY, 
+					MODIFIED_TIME = v_CURRENT_TIME  
 			;
+			  
+				 
+			   
+			         
+			 DELETE FROM USER_ROLE_TABLE u 
+			 WHERE ROLE_KEY NOT IN (select r.ROLE_KEY  
+									from SESSION.TmpRoles t
+									inner join ROLE_TABLE r
+								        on t.ROLE = r.ROLE_SHORT_NAME 
+			                     ) 
+			        and u.USER_KEY = v_USER_KEY;
 			 
+			  
+				MERGE INTO USER_ROLE_TABLE as A
+				 using
+				 ( 
+					   select
+				         v_USER_KEY AS USER_KEY,
+				         r.ROLE_KEY 
+					  from SESSION.TmpRoles t
+					  inner join ROLE_TABLE r
+					      on t.ROLE = r.ROLE_SHORT_NAME
+				 )AS B
+				 ON  A.USER_KEY = B.USER_KEY AND A.ROLE_KEY = B.ROLE_KEY 
+				 WHEN NOT MATCHED THEN
+				 INSERT
+				(  
+					USER_KEY,
+					ROLE_KEY,
+					CREATED_TIME,
+					MODIFIED_TIME 
+				) 
+				VALUES (
+				    B.USER_KEY,
+					B.ROLE_KEY, 
+					v_CURRENT_TIME,
+					v_CURRENT_TIME
+				)
+				WHEN MATCHED THEN UPDATE
+				SET    
+					MODIFIED_TIME = v_CURRENT_TIME  
+			    ;
+				  
+				   
+				 
+				/*  Update user affiliations  */
+				  
+				DELETE FROM USER_AFFILIATION_TABLE u 
+			    WHERE DATA_SOURCE_KEY NOT IN (select r.DATA_SOURCE_KEY  
+											  from SESSION.TmpAffiliates t
+											  inner join SESSION.Tmp_DATA_SOURCE_TABLE r
+											      on t.SOURCE_SHORT_NAME = r.SOURCE_SHORT_NAME 
+											      and t.CLASS_CODE = r.CLASS_CODE 
+			                     ) 
+			        and u.USER_KEY = v_USER_KEY;
+			    
+						
+						
+			        
+				 MERGE INTO USER_AFFILIATION_TABLE as A
+					 using
+					 ( 
+						  SELECT v_USER_KEY AS USER_KEY
+						       ,s.DATA_SOURCE_KEY
+							  ,max(case when  p.PERMISSION='R' then 1
+							            else 0 
+							   end) as READ_PERMISSION
+						      ,max(case when  p.PERMISSION='W' then 1
+							            else 0 
+							   end) as WRITE_PERMISSION 
+					 
+						FROM SESSION.TmpAffiliates a
+						inner join SESSION.Tmp_DATA_SOURCE_TABLE s
+						   on a.SOURCE_SHORT_NAME = s.SOURCE_SHORT_NAME
+						   and a.CLASS_CODE = s.CLASS_CODE
+						left JOIN SESSION.TmpAffiliatePermission p
+						   on a.source_short_name = p.source_short_name 
+						   and a.ID = p.ID
+						group by s.DATA_SOURCE_KEY
+						
+					 )AS B
+					 ON  A.USER_KEY = B.USER_KEY  AND A.DATA_SOURCE_KEY = B.DATA_SOURCE_KEY 
+					 WHEN NOT MATCHED THEN
+					 INSERT
+					(  
+						  USER_KEY,
+						  DATA_SOURCE_KEY,
+						  READ_PERMISSION,
+						  WRITE_PERMISSION,
+						  CREATED_TIME,
+						  MODIFIED_TIME 
+					) 
+					VALUES (
+						   B.USER_KEY,
+						   B.DATA_SOURCE_KEY,
+						   B.READ_PERMISSION,
+						   B.WRITE_PERMISSION, 
+						   v_CURRENT_TIME,
+						   v_CURRENT_TIME
+					)
+					WHEN MATCHED THEN UPDATE
+					SET   
+						READ_PERMISSION = 	B.READ_PERMISSION,
+						WRITE_PERMISSION = 	B.WRITE_PERMISSION,  
+						MODIFIED_TIME = v_CURRENT_TIME 
+				;
+			 END IF;
 			   
 		END;
 			 
@@ -528,6 +539,14 @@ P1: BEGIN
 					BEGIN
 						DECLARE cursor1 CURSOR WITH RETURN for
 						SELECT  1 AS RESULT 
+						FROM sysibm.sysdummy1;
+					 
+						OPEN cursor1;
+					END;
+					
+					BEGIN
+						DECLARE cursor1 CURSOR WITH RETURN for
+						SELECT v_IS_INCLUDE_PERMISSION
 						FROM sysibm.sysdummy1;
 					 
 						OPEN cursor1;
