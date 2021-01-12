@@ -544,15 +544,7 @@ P1: BEGIN
 					 
 						OPEN cursor1;
 					END;
-					
-					BEGIN
-						DECLARE cursor1 CURSOR WITH RETURN for
-						SELECT v_IS_INCLUDE_PERMISSION
-						FROM sysibm.sysdummy1;
-					 
-						OPEN cursor1;
-					END;
-					
+				 
 				 
 			 END IF ;  
 END P1 
