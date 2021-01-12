@@ -1,48 +1,40 @@
 CREATE OR REPLACE PROCEDURE usp_Role_Delete_Role 
 --================================================================================
 --Author: Tuyen Nguyen
---Created Date: 2021-01-08
+--Created Date: 2020-01-08
 --Description: Delete Role  
 --Output: 
 --       +Ds1: 1 if success. Failed will raise exception
 --=================================================================================
 (
-  @v_ROLE_SHORT_NAME VARCHAR(10)
+  @v_ROLE_KEY INT
 )
 
 
 	DYNAMIC RESULT SETS 1
 P1: BEGIN
+        DECLARE v_ROLE_SHORT_NAME VARCHAR(10); 
 
-        DECLARE v_ROLE_KEY INT;
-
-	    DECLARE v_ROLE_NAME VARCHAR(100); 
-	    DECLARE v_STATUS_CODE VARCHAR(1);
-	   
 	    DECLARE SQLCODE INTEGER DEFAULT 0; 
 	    DECLARE retcode INTEGER DEFAULT 0;
 	    DECLARE err_message varchar(300);
 	    DECLARE V_CURRENT_TIME TIMESTAMP;
 	
 	 -- INPUT VALIDATION
-		IF  @v_ROLE_SHORT_NAME IS NULL 
+		IF  @v_ROLE_KEY IS NULL 
 		THEN
 		 
 	 	 SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = 'Input is not valid';
 		
 		END IF;
 		 
-		IF (select count(1) from ROLE_TABLE where LOWER(ROLE_SHORT_NAME) =LOWER(@v_ROLE_SHORT_NAME))= 0  
+		
+		IF (select count(1) from ROLE_TABLE where ROLE_KEY =@v_ROLE_KEY)=0  
 		THEN
 		 
-	 	 SET ERR_MESSAGE = 'Role "'|| @v_ROLE_SHORT_NAME|| '" no existed';
+	 	 SET ERR_MESSAGE = 'Role "'|| @v_ROLE_KEY|| '" no existed';
 		SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
 		END IF;
-		
-
-		SET v_ROLE_NAME = (select ROLE_NAME from ROLE_TABLE WHERE LOWER(ROLE_SHORT_NAME) = LOWER(@v_ROLE_SHORT_NAME) );
-		SET v_STATUS_CODE = (select STATUS_CODE from ROLE_TABLE WHERE LOWER(ROLE_SHORT_NAME) = LOWER(@v_ROLE_SHORT_NAME) );
-		SET v_ROLE_KEY = (select ROLE_KEY from ROLE_TABLE WHERE LOWER(ROLE_SHORT_NAME) = LOWER(@v_ROLE_SHORT_NAME));
 		
 		SET v_CURRENT_TIME = (SELECT CURRENT TIMESTAMP FROM SYSIBM.SYSDUMMY1);
 		
@@ -52,7 +44,6 @@ BEGIN
 	    SET retcode = SQLCODE;
          
         -- Archive data
-        --DELETE FROM ARCHIVE_ROLE_TABLE WHERE ROLE_SHORT_NAME=  @v_ROLE_SHORT_NAME;
         
         INSERT INTO ARCHIVE_ROLE_TABLE
 	     (  
@@ -62,13 +53,13 @@ BEGIN
 			STATUS_CODE,
 			ARCHIVED_TIME  
 	     )
-	     VALUES( 
-	      v_ROLE_KEY,
-	      @v_ROLE_SHORT_NAME,
-	      v_ROLE_NAME,
-	      v_STATUS_CODE,
-	      v_CURRENT_TIME
-	     );
+	    SELECT  ROLE_KEY ,
+				ROLE_SHORT_NAME,
+				ROLE_NAME,
+				STATUS_CODE, 
+				current timestamp as ARCHIVED_TIME
+		  FROM  ROLE_TABLE
+		  WHERE ROLE_KEY = @v_ROLE_KEY;
         
          INSERT INTO ARCHIVE_ROLE_FEATURE_COMPONENT_TABLE
 	     ( 
@@ -84,13 +75,30 @@ BEGIN
 				MODIFIED_TIME, 
 				current timestamp as ARCHIVED_TIME
 		  FROM  ROLE_FEATURE_COMPONENT_TABLE
-		  WHERE ROLE_KEY = v_ROLE_KEY;
+		  WHERE ROLE_KEY = @v_ROLE_KEY;
         
+          INSERT INTO ARCHIVE_USER_ROLE_TABLE
+	     ( 
+			USER_KEY,
+			ROLE_KEY,
+			CREATED_TIME,
+			MODIFIED_TIME,
+			MODIFIED_BY, 
+			ARCHIVED_TIME 
+	     )
+	     SELECT USER_KEY ,
+				ROLE_KEY,
+				CREATED_TIME,
+				MODIFIED_TIME,
+				 MODIFIED_BY,
+				current timestamp as ARCHIVED_TIME
+		  FROM  USER_ROLE_TABLE
+		  WHERE ROLE_KEY = @v_ROLE_KEY;
         -- Delete role
 		 
-		 DELETE FROM ROLE_FEATURE_COMPONENT_TABLE WHERE ROLE_KEY = v_ROLE_KEY; 
-		 DELETE FROM USER_ROLE_TABLE WHERE ROLE_KEY = v_ROLE_KEY; 
-		 DELETE FROM ROLE_TABLE WHERE ROLE_KEY = v_ROLE_KEY; 
+		 DELETE FROM ROLE_FEATURE_COMPONENT_TABLE WHERE ROLE_KEY = @v_ROLE_KEY; 
+		 DELETE FROM USER_ROLE_TABLE WHERE ROLE_KEY = @v_ROLE_KEY; 
+		 DELETE FROM ROLE_TABLE WHERE ROLE_KEY = @v_ROLE_KEY; 
 END;	
 	
 	IF RETCODE < 0 THEN
