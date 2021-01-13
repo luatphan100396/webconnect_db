@@ -1,30 +1,23 @@
-CREATE OR REPLACE FUNCTION fn_Check_Has_Cross_Reference
+CREATE OR REPLACE FUNCTION fn_Get_Total_New_Account_Request
 --======================================================
 --Author: Nghi Ta
 --Created Date: 2020-12-19
---Description: Check whether the input animal has cross referencfe
+--Description: Get new account request
 --======================================================
 (
-	@INT_ID			CHAR(17), 
-	@ANIM_KEY		INT, 
-	@SPECIES_CODE	CHAR(1),
-	@SEX_CODE		CHAR(1)
+	 
 ) 
 RETURNS INTEGER
 
 LANGUAGE SQL
 BEGIN 
-	DECLARE HAS_CROSS_REFERENE SMALLINT DEFAULT 0;
+	DECLARE TOTAL_NEW_REQUEST INT DEFAULT 0;
 	
-	SET HAS_CROSS_REFERENE = (SELECT case when COUNT(1) >=1 then 1 else 0 end
-								FROM ID_XREF_TABLE 
-								WHERE 
-									ANIM_KEY = @ANIM_KEY
-									AND SPECIES_CODE = @SPECIES_CODE
-									AND SEX_CODE = @SEX_CODE
-									AND INT_ID <> @INT_ID	 
+	SET TOTAL_NEW_REQUEST = (SELECT COUNT(1)
+								FROM ACCOUNT_REQUEST_TABLE 
+								WHERE upper(STATUS) = 'NEW' 
 								 );
 	 
 	
-	RETURN HAS_CROSS_REFERENE;
+	RETURN TOTAL_NEW_REQUEST;
 END
