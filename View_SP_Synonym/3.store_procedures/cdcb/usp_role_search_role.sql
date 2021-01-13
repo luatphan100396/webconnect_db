@@ -7,7 +7,9 @@ CREATE OR REPLACE PROCEDURE usp_Role_Search_Role
 --       +Ds1: table with list role
 --=================================================================================
 (
-  IN @ROLE_NAME VARCHAR(100)
+  IN @ROLE_NAME VARCHAR(100),
+  IN @page_number INT,
+  IN @row_per_page INT
 )
 
     
@@ -36,6 +38,8 @@ P1: BEGIN
 		    on ur.ROLE_KEY = r.ROLE_KEY
 		WHERE LOWER(ROLE_NAME) LIKE '%'||LOWER(@ROLE_NAME)||'%'
 		ORDER BY ROLE_NAME
+		LIMIT @row_per_page
+		OFFSET (@page_number-1)*@row_per_page
 		WITH UR;
 		OPEN cursor1;
 	END;
