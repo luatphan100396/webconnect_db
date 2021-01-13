@@ -106,7 +106,7 @@ P1: BEGIN
 	
     SET v_REQUESTED_CREDENTIALS =(
 									SELECT 
-										substr(xmlserialize(xmlagg(xmltext (','||CREDENTIAL) order by  t.Order) as VARCHAR(30000)),2)  
+										substr(xmlserialize(xmlagg(xmltext (', '||CREDENTIAL) order by  t.Order) as VARCHAR(30000)),3)  
 										    
 									FROM SESSION.TmpGetListRequestCredential t
 									);
