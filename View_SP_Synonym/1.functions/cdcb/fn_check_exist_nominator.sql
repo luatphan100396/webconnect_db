@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION fn_Check_Exist_Nominator
 --Description: Check whether the input Nominator has been existed
 --======================================================
 (
-	@DRPC_SHORT_NAME VARCHAR(20),
+	@NOMINATOR_SHORT_NAME VARCHAR(20),
 	@DATA_SOURCE_KEY INT 
 ) 
 RETURNS INTEGER
@@ -16,7 +16,7 @@ BEGIN
 	
 	SET IS_EXISTED = (SELECT case when COUNT(1)>=1 then 1 else 0 end
 					  from DATA_SOURCE_TABLE uac 
-				      where lower(uac.SOURCE_SHORT_NAME) = lower(@DRPC_SHORT_NAME)
+				      where lower(uac.SOURCE_SHORT_NAME) = lower(@NOMINATOR_SHORT_NAME)
 				             and CLASS_CODE = 'R'
 				             and DATA_SOURCE_KEY <> @DATA_SOURCE_KEY
 					  );
