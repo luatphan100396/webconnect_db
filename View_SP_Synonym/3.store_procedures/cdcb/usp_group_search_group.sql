@@ -18,8 +18,8 @@ P1: BEGIN
 	DECLARE cursor1 CURSOR WITH RETURN for
 	SELECT 
 		 	row_number()over(order by GROUP_NAME) as No,
-	        GROUP_SHORT_NAME,
-			GROUP_NAME AS DESCRIPTION,
+	        gr.GROUP_SHORT_NAME,
+			gr.GROUP_NAME AS DESCRIPTION,
 			ref.DESCRIPTION as STATUS,
 			case when ugr.GROUP_KEY IS NOT NULL then '1'
 				 else '0'
@@ -28,7 +28,7 @@ P1: BEGIN
 		LEFT JOIN REFERENCE_TABLE ref
 			on gr.STATUS_CODE = ref.CODE
 			and ref.TYPE ='STATUS_CODE'  
-		INNER JOIN  
+		LEFT JOIN  
 		(
 			select distinct GROUP_KEY
 			from USER_GROUP_TABLE
@@ -53,7 +53,7 @@ P1: BEGIN
 		LEFT JOIN REFERENCE_TABLE ref
 			on gr.STATUS_CODE = ref.CODE
 			and ref.TYPE ='STATUS_CODE'  
-		INNER JOIN  
+		LEFT JOIN  
 		(
 			select distinct GROUP_KEY
 			from USER_GROUP_TABLE
