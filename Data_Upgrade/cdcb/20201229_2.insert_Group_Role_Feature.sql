@@ -556,29 +556,7 @@ INSERT INTO FEATURE_COMPONENT_TABLE
 	     WHERE FEATURE_NAME ='Queries >> Goat - Herd - Test Day' 
 	    )
 	    ;   
-	    
-	 INSERT INTO FEATURE_COMPONENT_TABLE
-	 (
-	 COMPONENT_NAME,
-	 FEATURE_KEY,
-	 CREATED_TIME,
-	 MODIFIED_TIME 
-	 )
 	     
-	  SELECT  COMPONENT_NAME,
-         FEATURE_KEY,
-         current timestamp as CREATED_TIME,
-		 current timestamp as  MODIFIED_TIME 
-	    FROM (
-	    VALUES ('Herd Information  '),
-				('Herd Test-Day Information  ') 
-
-	    )t (COMPONENT_NAME),
-	    (SELECT FEATURE_KEY
-	     FROM FEATURE_TABLE
-	     WHERE FEATURE_NAME ='Queries >> Goat - Herd - Test Day' 
-	    )
-	    ;   
 	    
 	 INSERT INTO FEATURE_COMPONENT_TABLE
 	 (
