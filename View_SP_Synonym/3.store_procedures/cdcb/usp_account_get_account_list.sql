@@ -19,6 +19,7 @@ P1: BEGIN
 	DECLARE v_COUNT_ROLE INT;
 	DECLARE v_COUNT_NOMINATOR INT;
 	DECLARE LAST_LOGIN INT;
+	DECLARE LOGIN_USER_KEY INT;
 	
 	--DECLARE TEMPLATE
 	
@@ -124,6 +125,7 @@ P1: BEGIN
      
      SET v_SEARCH_BY= (SELECT lower(VALUE) FROM SESSION.TmpGetInputs WHERE UPPER(Field) ='SEARCH_BY' LIMIT 1 with UR);
      SET v_GROUP = (SELECT VALUE FROM SESSION.TmpGetInputs WHERE UPPER(Field) ='GROUP' LIMIT 1 with UR);
+     SET LOGIN_USER_KEY = (SELECT VALUE FROM SESSION.TmpGetInputs WHERE UPPER(Field) ='LOGIN_USER_KEY' LIMIT 1 with UR);
 
 	
 	INSERT INTO SESSION.TmpRoles
@@ -294,9 +296,15 @@ P1: BEGIN
 			lDRPC.DRPC,
 			lNom.NOMINATOR,
 			uInfo.STATUS_CODE,
-			uvh.ACCESS_TIME
+			uvh.ACCESS_TIME, 
+			case when LOGIN_USER_KEY = t.USER_KEY then '0'
+			     when LOGIN_USER_KEY <> t.USER_KEY and admin_user.user_key is not null then '0'
+			     else '1' 
+			end as IS_DELETE_LOGIN_AS
 		FROM
 		SESSION.TmpListUser t
+		INNER JOIN USER_ACCOUNT_TABLE uAcc
+			ON t.USER_KEY=uAcc.USER_KEY
 		LEFT JOIN SESSION.TmpListRoleUser lRol
 			ON t.USER_KEY= lRol.USER_KEY
 		LEFT JOIN SESSION.TmpListNominatorUser lNom
@@ -307,8 +315,7 @@ P1: BEGIN
 			ON t.USER_KEY= lDRPC.USER_KEY
 		LEFT JOIN USER_INFO_TABLE uInfo
 			ON t.USER_KEY=uInfo.USER_KEY
-		INNER JOIN USER_ACCOUNT_TABLE uAcc
-			ON t.USER_KEY=uAcc.USER_KEY
+		
 		LEFT JOIN USER_GROUP_TABLE uG
 			ON t.USER_KEY=uG.USER_KEY
 		LEFT JOIN GROUP_TABLE gr
@@ -321,6 +328,17 @@ P1: BEGIN
 		    
 		)uvh  
 			ON uAcc.USER_KEY=uvh.USER_KEY 
+	    LEFT JOIN
+	    (
+	       select distinct user_key
+	       from user_group_table ug
+		   inner join group_table g
+			 on ug.group_key = g.group_key
+			 and upper(g.GROUP_SHORT_NAME) = 'ADMIN'
+	    )admin_user
+	       ON admin_user.user_key = t.USER_KEY
+	       
+	       
 		LIMIT @row_per_page
 		OFFSET (@page_number-1)*@row_per_page
 		 
@@ -331,34 +349,9 @@ P1: BEGIN
 	BEGIN
 	-- Declare cursor
 	DECLARE cursor2 CURSOR WITH RETURN for
-		SELECT 
-			count(1) AS Num_Recs
+		SELECT  count(1) AS Num_Recs
 		FROM
-		SESSION.TmpListUser t
-		LEFT JOIN SESSION.TmpListRoleUser lRol
-			ON t.USER_KEY= lRol.USER_KEY
-		LEFT JOIN SESSION.TmpListNominatorUser lNom
-			ON t.USER_KEY= lNom.USER_KEY
-		LEFT JOIN SESSION.TmpListLabUser lLab
-			ON t.USER_KEY= lLab.USER_KEY
-		LEFT JOIN SESSION.TmpListDRPCUser lDRPC
-			ON t.USER_KEY= lDRPC.USER_KEY
-		LEFT JOIN USER_INFO_TABLE uInfo
-			ON t.USER_KEY=uInfo.USER_KEY
-		INNER JOIN USER_ACCOUNT_TABLE uAcc
-			ON t.USER_KEY=uAcc.USER_KEY
-		LEFT JOIN USER_GROUP_TABLE uG
-			ON t.USER_KEY=uG.USER_KEY
-		LEFT JOIN GROUP_TABLE gr
-			ON uG.GROUP_KEY= gr.GROUP_KEY
-		LEFT JOIN  
-		(
-		  select USER_KEY, MAX(ACCESS_TIME) AS ACCESS_TIME
-		  from USER_VISIT_HISTORY_TABLE
-		  group by USER_KEY
-		    
-		)uvh  
-			ON uAcc.USER_KEY=uvh.USER_KEY 
+		SESSION.TmpListUser t 
 		WITH UR;
 		    
 	-- Cursor left open for client application

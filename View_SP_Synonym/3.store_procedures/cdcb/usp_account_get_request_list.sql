@@ -75,7 +75,7 @@ P1: BEGIN
 						OR LOWER(aReqTable.ORGANIZATION) LIKE '%'||v_SEARCH_BY||'%'
 					)
 			)
-		ORDER BY aReqTable.USER_NAME DESC
+		ORDER BY aReqTable.CREATED_TIME DESC
 		LIMIT @row_per_page
 		OFFSET (@page_number-1)*@row_per_page
 		WITH UR;
