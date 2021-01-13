@@ -11,7 +11,7 @@ CREATE OR REPLACE PROCEDURE usp_Role_Add_Edit_Role
   @INPUT VARCHAR(30000),
   @is_add_new char(1)
 )
-	DYNAMIC RESULT SETS 1 
+	DYNAMIC RESULT SETS 10
 	LANGUAGE SQL
 P1: BEGIN
 	-- Declare Variable
@@ -30,6 +30,8 @@ P1: BEGIN
 	DECLARE ERR_MESSAGE VARCHAR(300);
 	DECLARE V_CURRENT_TIME TIMESTAMP;
 	
+	
+	 
 	-- Declare Temp table
 	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpGetInputs 
 	(
@@ -44,16 +46,6 @@ P1: BEGIN
 		Value       VARCHAR(128) 
 	) WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
-	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpFeatureInputsMultiSelect 
-	(
-		Field      VARCHAR(128),
-		Value       VARCHAR(128) 
-	) WITH REPLACE ON COMMIT PRESERVE ROWS;
-	
-	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpFeatures 
-	(
-		FEATURE_KEY      INTEGER 
-	) WITH REPLACE ON COMMIT PRESERVE ROWS;
 
     DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpConponents 
 	(
@@ -94,25 +86,7 @@ P1: BEGIN
 	 		nullif(trim(XML_BOOKS.value),'')	 
 	FROM  
 		XMLTABLE(
-			'$doc/inputs/feature/multi_item/item/component/item' 
-			PASSING input_xml AS "doc"
-			COLUMNS 
-			 
-			Field      VARCHAR(128)  PATH 'field',
-			Value       VARCHAR(3000)  PATH 'value' 
-			) AS XML_BOOKS;
-			
-	INSERT INTO SESSION.TmpFeatureInputsMultiSelect 
-	(    
-		Field,
-		Value
-	)
-	 SELECT  
-	 		nullif(trim(XML_BOOKS.field),''),
-	 		nullif(trim(XML_BOOKS.value),'')	 
-	FROM  
-		XMLTABLE(
-			'$doc/inputs/feature/multi_item/item' 
+			'$doc/inputs/multi_item/item' 
 			PASSING input_xml AS "doc"
 			COLUMNS 
 			 
@@ -125,7 +99,8 @@ P1: BEGIN
 	SET v_ROLE_SHORT_NAME = (SELECT Value FROM SESSION.TmpGetInputs WHERE UPPER(Field) ='ROLE_NAME' LIMIT 1 with UR);
 	SET v_ROLE_NAME = (SELECT VALUE FROM SESSION.TmpGetInputs WHERE UPPER(Field) ='DESCRIPTION' LIMIT 1 with UR);
 	SET v_STATUS_CODE = (SELECT VALUE FROM SESSION.TmpGetInputs WHERE UPPER(Field) ='STATUS_CODE' LIMIT 1 with UR);
-	 
+	SET v_ROLE_KEY = (SELECT VALUE FROM SESSION.TmpGetInputs WHERE UPPER(Field) ='ROLE_KEY' LIMIT 1 with UR);
+	
 	SET v_CURRENT_TIME = (SELECT CURRENT TIMESTAMP FROM SYSIBM.SYSDUMMY1);
 	
 	
@@ -136,40 +111,29 @@ P1: BEGIN
 	SELECT VALUE
    FROM SESSION.TmpFilterInputsMultiSelect
    WHERE FIELD ='COMPONENT_KEY';
-   
-   
-   INSERT INTO SESSION.TmpFeatures 
-	(
-		FEATURE_KEY
-	)
-	SELECT VALUE
-   FROM SESSION.TmpFeatureInputsMultiSelect
-   WHERE FIELD ='FEATURE_KEY';
+   --   
+
    
 	
 	 
 	    --INPUT VALIDATION
 		IF  v_ROLE_SHORT_NAME IS NULL 
-		   OR v_STATUS_CODE IS NULL 
+		   OR v_STATUS_CODE IS NULL
+		   OR v_ROLE_KEY IS NULL OR (@is_add_new='0' AND v_ROLE_KEY = 0) 
 		THEN
 		 
 	 	 SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = 'Input is not valid';
 		
 		END IF;
 		
-		IF @is_add_new = '1' THEN
-		IF (select count(1) from ROLE_TABLE where ROLE_SHORT_NAME =v_ROLE_SHORT_NAME)>=1  
-		THEN
-		 
-	 	 SET ERR_MESSAGE = 'Role "'|| v_ROLE_SHORT_NAME|| '" has already existed';
-		SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
+		
+        IF (SELECT fn_Check_Exist_Role(v_ROLE_SHORT_NAME,v_ROLE_KEY) FROM SYSIBM.SYSDUMMY1) = 1 
+		THEN 
+	 	   SET ERR_MESSAGE = 'Role "'|| v_ROLE_SHORT_NAME|| '" has already existed';
+		   SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
 		
 		END IF;
-		END IF;
-
-	SET v_ROLE_KEY = (SELECT ROLE_KEY
-	                      FROM ROLE_TABLE
-					      WHERE LOWER(ROLE_SHORT_NAME) = LOWER(v_ROLE_SHORT_NAME) ); 
+		
 
 	-- BEGIN TRANSACTION
 	
@@ -181,7 +145,7 @@ P1: BEGIN
         MERGE INTO ROLE_TABLE as A
 			 using
 			 ( 
-				 SELECT coalesce(v_ROLE_KEY,-999999) as ROLE_KEY
+				 SELECT  v_ROLE_KEY as ROLE_KEY
 				 FROM sysibm.sysdummy1  
 			 )AS B
 			 ON  A.ROLE_KEY = B.ROLE_KEY 
@@ -198,17 +162,18 @@ P1: BEGIN
 				v_ROLE_NAME,
 				v_STATUS_CODE  
 			)
+			
         WHEN MATCHED THEN UPDATE
-        SET     
+        SET     ROLE_SHORT_NAME=v_ROLE_SHORT_NAME,
 				ROLE_NAME=v_ROLE_NAME,
 				STATUS_CODE=v_STATUS_CODE
 		;
-		--
+		
 
-				
-		SET v_ROLE_KEY = (SELECT ROLE_KEY
-	                      FROM ROLE_TABLE
-					      WHERE ROLE_SHORT_NAME = v_ROLE_SHORT_NAME ); 
+		--	ROLE_FEATURE_COMPONENT_TABLE
+		     SET v_ROLE_KEY = (SELECT ROLE_KEY
+	                          FROM ROLE_TABLE
+					          WHERE ROLE_SHORT_NAME = v_ROLE_SHORT_NAME ); 
 					      
 					      
 			 DELETE FROM ROLE_FEATURE_COMPONENT_TABLE u 
