@@ -37,22 +37,10 @@ P1: BEGIN
 		Value       VARCHAR(3000)
 	) WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
-	
 	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpFilterInputsMultiSelect 
 	(
 		Field      VARCHAR(128),
 		Value       VARCHAR(128) 
-	) WITH REPLACE ON COMMIT PRESERVE ROWS;
-	
-	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpFeatureInputsMultiSelect 
-	(
-		Field      VARCHAR(128),
-		Value       VARCHAR(128) 
-	) WITH REPLACE ON COMMIT PRESERVE ROWS;
-	
-	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpFeatures 
-	(
-		FEATURE_KEY      INTEGER 
 	) WITH REPLACE ON COMMIT PRESERVE ROWS;
 
     DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpConponents 
@@ -83,7 +71,6 @@ P1: BEGIN
 			Value       VARCHAR(3000)  PATH 'value' 
 			) AS XML_BOOKS;
 			
-			
 	INSERT INTO SESSION.TmpFilterInputsMultiSelect 
 	(    
 		Field,
@@ -94,32 +81,13 @@ P1: BEGIN
 	 		nullif(trim(XML_BOOKS.value),'')	 
 	FROM  
 		XMLTABLE(
-			'$doc/inputs/feature/multi_item/item/component/item' 
+			'$doc/inputs/multi_item/item' 
 			PASSING input_xml AS "doc"
 			COLUMNS 
 			 
 			Field      VARCHAR(128)  PATH 'field',
 			Value       VARCHAR(3000)  PATH 'value' 
 			) AS XML_BOOKS;
-			
-	INSERT INTO SESSION.TmpFeatureInputsMultiSelect 
-	(    
-		Field,
-		Value
-	)
-	 SELECT  
-	 		nullif(trim(XML_BOOKS.field),''),
-	 		nullif(trim(XML_BOOKS.value),'')	 
-	FROM  
-		XMLTABLE(
-			'$doc/inputs/feature/multi_item/item' 
-			PASSING input_xml AS "doc"
-			COLUMNS 
-			 
-			Field      VARCHAR(128)  PATH 'field',
-			Value       VARCHAR(3000)  PATH 'value' 
-			) AS XML_BOOKS;
-	
 	--Set variable
 	SET v_GROUP_SHORT_NAME = (SELECT Value FROM SESSION.TmpGetInputs WHERE UPPER(Field) ='GROUP_NAME' LIMIT 1 with UR);
 	SET v_GROUP_NAME = (SELECT VALUE FROM SESSION.TmpGetInputs WHERE UPPER(Field) ='DESCRIPTION' LIMIT 1 with UR);
@@ -136,18 +104,7 @@ P1: BEGIN
 	SELECT VALUE
    FROM SESSION.TmpFilterInputsMultiSelect
    WHERE FIELD ='COMPONENT_KEY';
-   
-   
-   INSERT INTO SESSION.TmpFeatures 
-	(
-		FEATURE_KEY
-	)
-	SELECT VALUE
-   FROM SESSION.TmpFeatureInputsMultiSelect
-   WHERE FIELD ='FEATURE_KEY';
-   
-	
-	 
+
 	    --INPUT VALIDATION
 		IF  v_GROUP_SHORT_NAME IS NULL 
 		   OR v_STATUS_CODE IS NULL
@@ -201,7 +158,6 @@ P1: BEGIN
 				GROUP_NAME=v_GROUP_NAME,
 				STATUS_CODE=v_STATUS_CODE
 		;
-		
 
 		--	GROUP_FEATURE_COMPONENT_TABLE
 		     SET v_GROUP_KEY = (SELECT GROUP_KEY
@@ -210,11 +166,10 @@ P1: BEGIN
 					      
 					      
 			 DELETE FROM GROUP_FEATURE_COMPONENT_TABLE u 
-		     WHERE COMPONENT_KEY NOT IN (select t.COMPONENT_KEY  
-								from SESSION.TmpConponents t
-								inner join GROUP_FEATURE_COMPONENT_TABLE r
-							        on t.COMPONENT_KEY = r.COMPONENT_KEY
-		                     ) 
+		     WHERE COMPONENT_KEY NOT IN (select 
+		     								t.COMPONENT_KEY  
+											from SESSION.TmpConponents t
+		                     			) 
 	                AND u.GROUP_KEY = v_GROUP_KEY;
 		        
 		        
@@ -244,7 +199,6 @@ P1: BEGIN
 				MODIFIED_TIME = v_CURRENT_TIME  
 		    ;
 		 	    
- 
  	END;
  	
  	
