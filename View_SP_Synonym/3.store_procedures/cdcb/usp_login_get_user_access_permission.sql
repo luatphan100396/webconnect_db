@@ -59,6 +59,9 @@ BEGIN
 		    on gfc.COMPONENT_KEY = fc.COMPONENT_KEY
 		 inner join FEATURE_TABLE f
 		    on f.FEATURE_KEY = fc.FEATURE_KEY
+		 order by GROUP_ROLE,
+			      FEATURE_NAME,
+			      COMPONENT_NAME
 		with ur;
 		 
 	  
