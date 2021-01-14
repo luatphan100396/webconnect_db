@@ -1,0 +1,120 @@
+CREATE OR REPLACE PROCEDURE usp_Group_Delete_Group
+--================================================================================
+--Author: Linh Pham
+--Created Date: 2020-01-08
+--Description: Delete Group 
+--Output: 
+--       +Ds1: 1 if success. Failed will raise exception
+--=================================================================================
+(
+  @v_GROUP_KEY INT
+)
+
+
+	DYNAMIC RESULT SETS 1
+P1: BEGIN
+        DECLARE v_GROUP_SHORT_NAME VARCHAR(10); 
+
+	    DECLARE SQLCODE INTEGER DEFAULT 0; 
+	    DECLARE retcode INTEGER DEFAULT 0;
+	    DECLARE err_message varchar(300);
+	    DECLARE V_CURRENT_TIME TIMESTAMP;
+	
+	 -- INPUT VALIDATION
+		IF  @v_GROUP_KEY IS NULL 
+		THEN
+		 
+	 	 SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = 'Input is not valid';
+		
+		END IF;
+		 
+		
+		IF (select count(1) from GROUP_TABLE where GROUP_KEY =@v_GROUP_KEY)=0  
+		THEN
+		 
+	 	 SET ERR_MESSAGE = 'Role "'|| @v_GROUP_KEY|| '" no existed';
+		SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
+		END IF;
+		
+		SET v_CURRENT_TIME = (SELECT CURRENT TIMESTAMP FROM SYSIBM.SYSDUMMY1);
+		
+		
+BEGIN  
+        DECLARE CONTINUE HANDLER FOR SQLEXCEPTION, SQLWARNING, NOT FOUND
+	    SET retcode = SQLCODE;
+         
+        -- Archive data
+        
+        INSERT INTO ARCHIVE_GROUP_TABLE
+	     (  
+	        GROUP_KEY,
+			GROUP_SHORT_NAME,
+			GROUP_NAME,
+			STATUS_CODE,
+			ARCHIVED_TIME  
+	     )
+	    SELECT  
+	    		GROUP_KEY,
+				GROUP_SHORT_NAME,
+				GROUP_NAME,
+				STATUS_CODE,
+				current timestamp as ARCHIVED_TIME
+		FROM  GROUP_TABLE
+		  	WHERE GROUP_KEY = @v_GROUP_KEY;
+        
+         INSERT INTO ARCHIVE_GROUP_FEATURE_COMPONENT_TABLE
+	     ( 
+			GROUP_KEY,
+			COMPONENT_KEY,
+			CREATED_TIME,
+			MODIFIED_TIME, 
+			ARCHIVED_TIME 
+	     )
+	     SELECT GROUP_KEY ,
+				COMPONENT_KEY,
+				CREATED_TIME,
+				MODIFIED_TIME, 
+				current timestamp as ARCHIVED_TIME
+		  FROM  GROUP_FEATURE_COMPONENT_TABLE
+		  WHERE GROUP_KEY = @v_GROUP_KEY;
+        
+          INSERT INTO ARCHIVE_USER_GROUP_TABLE
+	     ( 
+			USER_KEY,
+			GROUP_KEY,
+			CREATED_TIME,
+			MODIFIED_TIME,
+			MODIFIED_BY, 
+			ARCHIVED_TIME 
+	     )
+	     SELECT USER_KEY ,
+				GROUP_KEY,
+				CREATED_TIME,
+				MODIFIED_TIME,
+				 MODIFIED_BY,
+				current timestamp as ARCHIVED_TIME
+		  FROM  USER_GROUP_TABLE
+		  WHERE GROUP_KEY = @v_GROUP_KEY;
+        -- Delete role
+		 
+		 DELETE FROM GROUP_FEATURE_COMPONENT_TABLE WHERE GROUP_KEY = @v_GROUP_KEY; 
+		 DELETE FROM USER_GROUP_TABLE WHERE GROUP_KEY = @v_GROUP_KEY; 
+		 DELETE FROM GROUP_TABLE WHERE GROUP_KEY = @v_GROUP_KEY; 
+END;	
+	
+	IF RETCODE < 0 THEN
+			ROLLBACK;
+			
+			SET ERR_MESSAGE = (SELECT SYSPROC.SQLERRM (CAST(RETCODE AS VARCHAR(20))) FROM SYSIBM.SYSDUMMY1);
+			SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
+		ELSE
+			COMMIT;
+			BEGIN
+				DECLARE CURSOR1 CURSOR WITH RETURN FOR
+				SELECT 1 AS RESULT
+				FROM SYSIBM.SYSDUMMY1;
+				
+				OPEN CURSOR1;
+			END;
+		END IF;
+END P1
