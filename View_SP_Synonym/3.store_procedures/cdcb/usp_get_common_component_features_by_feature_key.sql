@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE usp_Get_Common_Component_Features
+CREATE OR REPLACE PROCEDURE usp_Get_Common_Component_Features_By_Feature_Key
 --====================================================================================
 --Author: Linh Pham
 --Created Date: 2020-01-07
@@ -19,9 +19,9 @@ P1: BEGIN
 		fc.COMPONENT_NAME
 	FROM FEATURE_COMPONENT_TABLE fc
 	INNER JOIN FEATURE_TABLE f
-			on fc.FEATURE_KEY = f.FEATURE_KEY
-			where f.FEATURE_KEY = @FEATURE_KEY
-			order by f.FEATURE_NAME, fc.COMPONENT_NAME
+		 on fc.FEATURE_KEY = f.FEATURE_KEY
+	where f.FEATURE_KEY = @FEATURE_KEY
+	order by fc.COMPONENT_NAME
 		WITH UR; 
 
 	-- Cursor left open for client application
