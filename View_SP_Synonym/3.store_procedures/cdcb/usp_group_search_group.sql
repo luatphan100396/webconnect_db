@@ -18,6 +18,7 @@ P1: BEGIN
 	DECLARE cursor1 CURSOR WITH RETURN for
 	SELECT 
 		 	row_number()over(order by GROUP_NAME) as No,
+		 	gr.GROUP_KEY,
 	        gr.GROUP_SHORT_NAME,
 			gr.GROUP_NAME AS DESCRIPTION,
 			ref.DESCRIPTION as STATUS,
