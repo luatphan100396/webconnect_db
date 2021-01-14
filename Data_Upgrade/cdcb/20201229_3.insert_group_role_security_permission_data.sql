@@ -806,3 +806,31 @@ where fc.COMPONENT_NAME ='Get Nomination Performance Metrics based on Requester 
 ;
    
    
+	
+  INSERT INTO GROUP_FEATURE_COMPONENT_TABLE
+ (
+ GROUP_KEY,
+ COMPONENT_KEY,
+ CREATED_TIME,
+ MODIFIED_TIME 
+ )
+  
+ select GROUP_KEY,
+        fc.COMPONENT_KEY, 
+		current timestamp as CREATED_TIME,
+		current timestamp as  MODIFIED_TIME  
+ from FEATURE_COMPONENT_TABLE fc
+ inner join feature_table f 
+ on fc.feature_key = f.feature_key
+ and f.feature_name IN ('Administration >> Account Management',
+                        'Administration >> Settings',
+                        'Administration >> Security Level'
+                        ),
+ (
+   select group_key,
+          group_short_name
+   from group_table 
+   where group_short_name ='ADMIN'
+ )g
+ ;
+   

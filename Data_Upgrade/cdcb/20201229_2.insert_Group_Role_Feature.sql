@@ -65,7 +65,10 @@
 ('Special Section >> Sample ID Look Up'),
 ('Special Section >> ID Range'),
 ('Special Section >> Reports'),
-('Special Section >> Performance Metrics ') 
+('Special Section >> Performance Metrics '),
+('Administration >> Account Management'),
+('Administration >> Settings'),
+('Administration >> Security Level') 
  ;
   
  
@@ -813,3 +816,76 @@ INSERT INTO FEATURE_COMPONENT_TABLE
 	     WHERE FEATURE_NAME ='Special Section >> Performance Metrics' 
 	    )
 	    ;   
+
+  
+ INSERT INTO FEATURE_COMPONENT_TABLE
+ (
+ COMPONENT_NAME,
+ FEATURE_KEY,
+ CREATED_TIME,
+ MODIFIED_TIME 
+ )
+ 
+ SELECT  COMPONENT_NAME,
+         FEATURE_KEY,
+         current timestamp as CREATED_TIME,
+		 current timestamp as  MODIFIED_TIME 
+	    FROM (
+	    VALUES 
+			('Account Tab' ),
+			('Account Request Tab') 
+	    )t (COMPONENT_NAME),
+	    (SELECT FEATURE_KEY
+	     FROM FEATURE_TABLE
+	     WHERE FEATURE_NAME ='Administration >> Account Management'
+	    
+	    )
+	    ;
+	    
+	INSERT INTO FEATURE_COMPONENT_TABLE
+	 (
+	 COMPONENT_NAME,
+	 FEATURE_KEY,
+	 CREATED_TIME,
+	 MODIFIED_TIME 
+	 )
+ 
+ SELECT  COMPONENT_NAME,
+         FEATURE_KEY,
+         current timestamp as CREATED_TIME,
+		 current timestamp as  MODIFIED_TIME 
+	    FROM (
+	    VALUES 
+			('Settings Tab' ) 
+	    )t (COMPONENT_NAME),
+	    (SELECT FEATURE_KEY
+	     FROM FEATURE_TABLE
+	     WHERE FEATURE_NAME ='Administration >> Settings'
+	    
+	    )
+	    ;	    
+   
+   INSERT INTO FEATURE_COMPONENT_TABLE
+	 (
+	 COMPONENT_NAME,
+	 FEATURE_KEY,
+	 CREATED_TIME,
+	 MODIFIED_TIME 
+	 )
+ 
+ SELECT  COMPONENT_NAME,
+         FEATURE_KEY,
+         current timestamp as CREATED_TIME,
+		 current timestamp as  MODIFIED_TIME 
+	    FROM (
+	    VALUES 
+			('Group Tab' ),
+			('Role Tab' ),
+			('Other Tab' ) 
+	    )t (COMPONENT_NAME),
+	    (SELECT FEATURE_KEY
+	     FROM FEATURE_TABLE
+	     WHERE FEATURE_NAME ='Administration >> Security Level'
+	    
+	    )
+	    ;	
