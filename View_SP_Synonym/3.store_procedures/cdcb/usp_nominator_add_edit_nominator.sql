@@ -1,8 +1,8 @@
-CREATE OR REPLACE PROCEDURE usp_DRPC_Add_Edit_DRPC
+CREATE OR REPLACE PROCEDURE usp_Nominator_Add_Edit_Nominator
 --======================================================
 --Author: Tri Do
---Created Date: 2021-01-08
---Description: Add Edit DRPC
+--Created Date: 2021-01-07
+--Description: Add Edit Nominator
 --Output:
 --        +Ds1: 1 if success. Failed will raise exception
 --======================================================
@@ -71,20 +71,20 @@ P1: BEGIN
 	-- INPUT VALIDATION
 	IF  v_SOURCE_SHORT_NAME IS NULL
 		OR v_SOURCE_NAME IS NULL
-		OR v_STATUS_CODE IS NULL 
+		OR v_STATUS_CODE IS NULL
 		OR v_DATA_SOURCE_KEY IS NULL OR (@is_add_new='0' AND v_DATA_SOURCE_KEY = 0)
+		
 	THEN
 		SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = 'Input is not valid';
 	END IF;
 	
-	IF (SELECT fn_Check_Exist_DRPC(v_SOURCE_SHORT_NAME,v_DATA_SOURCE_KEY) FROM SYSIBM.SYSDUMMY1) = 1
+	IF (SELECT fn_Check_Exist_Nominator(v_SOURCE_SHORT_NAME,v_DATA_SOURCE_KEY) FROM SYSIBM.SYSDUMMY1) = 1
 	THEN
-		SET ERR_MESSAGE = 'DRPC "'|| v_SOURCE_SHORT_NAME|| '" has already existed';
+		SET ERR_MESSAGE = 'Nominator "'|| v_SOURCE_SHORT_NAME|| '" has already existed';
 		SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
 	END IF;
-  
 	
-	
+ 
 	 --BEGIN work:
  
  BEGIN  
@@ -118,7 +118,7 @@ P1: BEGIN
 			) 
 			VALUES (
 				v_NEW_DATA_SOURCE_KEY
-				,'D'
+				,'R'
 				,''
 				,v_SOURCE_SHORT_NAME
 				,v_SOURCE_NAME
