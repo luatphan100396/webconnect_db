@@ -1,0 +1,120 @@
+CREATE OR REPLACE PROCEDURE usp_Group_Clone_Group
+--================================================================================
+--Author: Linh Pham
+--Created Date: 2020-01-14
+--Description: Clone Group 
+--Output: 
+--       +Ds1: 1 if success. Failed will raise exception
+--=================================================================================
+(
+   @v_GROUP_KEY INT
+)
+	DYNAMIC RESULT SETS 1
+	
+
+P1: BEGIN
+	-- Declare cursor
+	
+	
+
+	    DECLARE v_GROUP_KEY int;
+	    DECLARE v_GROUP_SHORT_NAME VARCHAR(10);
+	    DECLARE v_NEW_GROUP_SHORT_NAME VARCHAR(10);
+	    DECLARE v_GROUP_NAME VARCHAR(100); 
+	    DECLARE v_STATUS_CODE VARCHAR(1);
+	    
+	    DECLARE SQLCODE INTEGER DEFAULT 0; 
+	    DECLARE retcode INTEGER DEFAULT 0;
+	    DECLARE err_message varchar(300);
+	    
+
+	 -- INPUT VALIDATION
+		IF @v_GROUP_KEY  IS NULL 
+		THEN
+		 
+	 	 SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = 'Input is not valid';
+		
+		END IF;
+		
+		SET v_NEW_GROUP_SHORT_NAME=(SELECT GROUP_SHORT_NAME||' Copy' FROM GROUP_TABLE WHERE LOWER(GROUP_KEY) = LOWER(@v_GROUP_KEY));
+		SET v_GROUP_SHORT_NAME = (SELECT GROUP_SHORT_NAME FROM GROUP_TABLE WHERE LOWER(GROUP_KEY) = LOWER(@v_GROUP_KEY));
+		
+		IF (select count(1) from GROUP_TABLE where LOWER(GROUP_SHORT_NAME) =LOWER(v_NEW_GROUP_SHORT_NAME))>=1  
+		THEN
+		
+	 	SET ERR_MESSAGE = 'Group "'||v_GROUP_SHORT_NAME|| '" copy has already existed';
+		SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
+		
+		END IF;
+		
+		IF (select count(1) from GROUP_TABLE where LOWER(GROUP_KEY) =LOWER(@v_GROUP_KEY))=0  
+		THEN
+		
+	 	SET ERR_MESSAGE = 'Group "'||v_GROUP_SHORT_NAME|| '" no existed';
+		SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
+		
+		END IF;
+		
+		--set new name
+		SET v_GROUP_NAME = (SELECT GROUP_NAME||' Copy' FROM GROUP_TABLE WHERE LOWER(GROUP_KEY) = LOWER(@v_GROUP_KEY) );
+		SET v_STATUS_CODE = (SELECT STATUS_CODE FROM GROUP_TABLE WHERE LOWER(GROUP_KEY) = LOWER(@v_GROUP_KEY));
+BEGIN	
+		
+		DECLARE CONTINUE HANDLER FOR SQLEXCEPTION, SQLWARNING, NOT FOUND
+		SET retcode = SQLCODE;
+		
+		
+		INSERT INTO GROUP_TABLE
+	     ( 
+			GROUP_SHORT_NAME,
+			GROUP_NAME,
+			STATUS_CODE
+	     )
+	     VALUES
+	     (
+	        v_NEW_GROUP_SHORT_NAME,
+			v_GROUP_NAME,
+			v_STATUS_CODE
+		 );
+				
+		   --COPY NEW ROW INTO FEATURE COMPONTENT TABLE
+		  SET v_GROUP_KEY = (SELECT GROUP_KEY
+	                      FROM GROUP_TABLE
+					      WHERE LOWER(GROUP_SHORT_NAME) = LOWER(v_NEW_GROUP_SHORT_NAME) );
+		  
+		  
+		  INSERT INTO GROUP_FEATURE_COMPONENT_TABLE
+	      ( 
+			GROUP_KEY,
+			COMPONENT_KEY,
+			CREATED_TIME,
+			MODIFIED_TIME, 
+			MODIFIED_BY
+	     )
+	     SELECT v_GROUP_KEY,
+				COMPONENT_KEY,
+				current timestamp as CREATED_TIME,
+				current timestamp as MODIFIED_TIME,
+				MODIFIED_BY
+		  FROM  GROUP_FEATURE_COMPONENT_TABLE
+		  WHERE GROUP_KEY = v_GROUP_KEY;
+--		
+	END;
+    IF RETCODE < 0 THEN
+			ROLLBACK;
+			
+			SET ERR_MESSAGE = (SELECT SYSPROC.SQLERRM (CAST(RETCODE AS VARCHAR(20))) FROM SYSIBM.SYSDUMMY1);
+			SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
+		ELSE
+			COMMIT;
+			BEGIN
+				DECLARE CURSOR1 CURSOR WITH RETURN FOR
+				SELECT 1 AS RESULT
+				FROM SYSIBM.SYSDUMMY1;
+				
+				OPEN CURSOR1;
+			END;
+		END IF;
+	
+	
+END P1
