@@ -32,7 +32,7 @@ P1: BEGIN
 		IF (select count(1) from GROUP_TABLE where GROUP_KEY =@v_GROUP_KEY)=0  
 		THEN
 		 
-	 	 SET ERR_MESSAGE = 'Role "'|| @v_GROUP_KEY|| '" no existed';
+	 	 SET ERR_MESSAGE = 'Group "'|| @v_GROUP_KEY|| '" no existed';
 		SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
 		END IF;
 		
