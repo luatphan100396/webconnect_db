@@ -48,6 +48,10 @@ P1: BEGIN
 		COMPONENT_KEY      INTEGER 
 	) WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
+	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpRestrictedField
+	(
+		FIELD_KEY      INTEGER 
+	) WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
 	
 	SET input_xml =  xmlparse(document @INPUT);
@@ -104,6 +108,15 @@ P1: BEGIN
 	SELECT VALUE
    FROM SESSION.TmpFilterInputsMultiSelect
    WHERE FIELD ='COMPONENT_KEY';
+   
+   INSERT INTO SESSION.TmpRestrictedField
+	(
+		FIELD_KEY
+	)
+	SELECT VALUE
+   FROM SESSION.TmpFilterInputsMultiSelect
+   WHERE FIELD ='RESTRICTED_FIELD_KEY';
+   
 
 	    --INPUT VALIDATION
 		IF  v_GROUP_SHORT_NAME IS NULL 
@@ -198,6 +211,50 @@ P1: BEGIN
 			SET    
 				MODIFIED_TIME = v_CURRENT_TIME  
 		    ;
+		    
+		    
+		    -- Add Restricted field
+		    
+		    IF(select count(1) from SESSION.TmpRestrictedField)>0 THEN
+		    
+		    
+			    DELETE FROM GROUP_RESTRICTED_FIELD_TABLE u 
+			     WHERE FIELD_KEY NOT IN (select 
+			     								t.FIELD_KEY  
+												from SESSION.TmpRestrictedField t
+			                     			) 
+		                AND u.GROUP_KEY = v_GROUP_KEY;
+			        
+			        
+		         MERGE INTO  GROUP_RESTRICTED_FIELD_TABLE as A
+				 using
+				 ( 
+			   			  SELECT t.FIELD_KEY
+		                  FROM SESSION.TmpRestrictedField t
+				 )AS B
+				 ON   A.FIELD_KEY = B.FIELD_KEY AND A.GROUP_KEY = v_GROUP_KEY
+				 WHEN NOT MATCHED THEN
+				 INSERT
+				(  
+					GROUP_KEY,
+					FIELD_KEY,
+					CREATED_TIME,
+					MODIFIED_TIME 
+				) 
+				VALUES (
+				        v_GROUP_KEY,
+					B.FIELD_KEY, 
+					v_CURRENT_TIME,
+					v_CURRENT_TIME
+				)
+				WHEN MATCHED THEN UPDATE
+				SET    
+					MODIFIED_TIME = v_CURRENT_TIME  
+			    ;
+		    
+		    
+		    END IF;
+		    
 		 	    
  	END;
  	

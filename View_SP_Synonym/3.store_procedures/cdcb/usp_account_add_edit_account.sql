@@ -247,13 +247,13 @@ P1: BEGIN
 	 
 		IF (SELECT FN_CHECK_EXIST_USERNAME(v_USER_NAME,v_USER_KEY) FROM SYSIBM.SYSDUMMY1) = 1
 		THEN
-			SET ERR_MESSAGE = 'User name "'|| v_USER_NAME|| '" has already existed';
+			SET ERR_MESSAGE = 'An account with username "'|| v_USER_NAME|| '" has already existed in the system';
 			SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
 		END IF;
 		
 		IF (SELECT FN_CHECK_EXIST_EMAILADDRESS(v_EMAIL_ADDRESS,v_USER_KEY) FROM SYSIBM.SYSDUMMY1) = 1
 		THEN
-			SET ERR_MESSAGE = 'Email address "'|| v_EMAIL_ADDRESS|| '" has already existed';
+			SET ERR_MESSAGE = 'An account with email address "'|| v_EMAIL_ADDRESS|| '" has already existed in the system';
 			SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = ERR_MESSAGE;
 		END IF;
     
