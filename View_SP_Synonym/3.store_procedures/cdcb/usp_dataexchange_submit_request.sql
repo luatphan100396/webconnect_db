@@ -150,7 +150,7 @@ P1: BEGIN
  v_REQUEST_NAME,
  v_INPUT_PATH,
  v_REQUES_DETAIL,
-'NEW',
+'New',
 v_IP_ADDRESS,
 current timestamp 
  );

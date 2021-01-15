@@ -27,8 +27,8 @@ INSERT INTO USER_INFO_TABLE
  select USER_KEY,
         FIRST_NAME as user_name,
         '$2b$12$8msO26s5I97jouiWfxD2w.ani20E2NilK6yYqZBDP2E6Cp6gPn0qq' as pass,
-		,current timestamp
-		,current timestamp
+		 current timestamp,
+		 current timestamp
        
  from USER_INFO_TABLE
  where FIRST_NAME in ('Admin','Anonymous');
