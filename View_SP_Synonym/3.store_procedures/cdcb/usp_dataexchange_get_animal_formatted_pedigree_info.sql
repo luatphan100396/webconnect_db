@@ -13,7 +13,8 @@ CREATE OR REPLACE PROCEDURE usp_DataExchange_Get_Animal_Formatted_Pedigree_Info
 	IN @SPECIES_CODE char(1),
 	IN @SEX_CODE char(1),
 	IN @IS_DATA_EXCHANGE char(1),
-	IN @REQUEST_KEY BIGINT
+	IN @REQUEST_KEY BIGINT,
+	IN @OPERATION_KEY BIGINT
 )
 	DYNAMIC RESULT SETS 1
 P1: BEGIN
@@ -74,8 +75,7 @@ P1: BEGIN
 	) WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
 --		  
-		 
-		 
+		  
 	---SET VARIABLES
 	SET v_DEFAULT_DATE = (select STRING_VALUE FROM dbo.constants where name ='Default_Date_Value' LIMIT 1 with UR);
 
@@ -252,11 +252,22 @@ P1: BEGIN
 			OPEN cursor1;
 		  
 	    END;
+	    
+	    --- Data exchange
    ELSEIF @IS_DATA_EXCHANGE ='1' THEN
 	
 		   SET LAST_ROW_ID = (SELECT MAX(ROW_ID) FROM SESSION.TMP_RESULT); 
            SET TEMPLATE_NAME 	='ANIM_FORMATTED_PEDIGREE'; 
 	       call usp_common_export_json_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,LAST_ROW_ID,EXPORT_FILE_NAME);
+	       
+	       --validate output
+	       IF  EXPORT_FILE_NAME IS NULL THEN 
+	 	     SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = 'Export failed'; 
+		   END IF;
+		   
+		   UPDATE DATA_EXCHANGE_OPERATION_TABLE SET OUTPUT_PATH = EXPORT_FILE_NAME 
+		   WHERE OPERATION_KEY = @OPERATION_KEY;
+		   
 	       
 	       begin
 	        declare c1 cursor with return for
