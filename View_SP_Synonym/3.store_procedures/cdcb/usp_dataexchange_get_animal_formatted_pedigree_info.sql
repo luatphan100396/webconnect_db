@@ -13,8 +13,7 @@ CREATE OR REPLACE PROCEDURE usp_DataExchange_Get_Animal_Formatted_Pedigree_Info
 	IN @SPECIES_CODE char(1),
 	IN @SEX_CODE char(1),
 	IN @IS_DATA_EXCHANGE char(1),
-	IN @REQUEST_KEY BIGINT,
-	IN @OPERATION_KEY BIGINT
+	IN @REQUEST_KEY BIGINT
 )
 	DYNAMIC RESULT SETS 1
 P1: BEGIN
@@ -259,14 +258,9 @@ P1: BEGIN
            SET TEMPLATE_NAME 	='ANIM_FORMATTED_PEDIGREE'; 
 	       call usp_common_export_json_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,LAST_ROW_ID,EXPORT_FILE_NAME);
 	       
-	       
-	       UPDATE  DATA_EXCHANGE_OPERATION_TABLE SET OUTPUT_PATH = EXPORT_FILE_NAME
-	       WHERE OPERATION_KEY = @OPERATION_KEY;
-	       
-	       
 	       begin
 	        declare c1 cursor with return for
-	          select 1 AS RESULT from sysibm.sysdummy1;
+	          select EXPORT_FILE_NAME from sysibm.sysdummy1;
        
               open c1;
     
