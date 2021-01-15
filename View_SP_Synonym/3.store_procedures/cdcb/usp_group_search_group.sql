@@ -22,8 +22,8 @@ P1: BEGIN
 	        gr.GROUP_SHORT_NAME,
 			gr.GROUP_NAME AS DESCRIPTION,
 			ref.DESCRIPTION as STATUS,
-			case when ugr.GROUP_KEY IS NOT NULL then '1'
-				 else '0'
+			case when ugr.GROUP_KEY IS NOT NULL then '0'
+				 else '1'
 		    end AS IS_DELETE
 		FROM GROUP_TABLE gr
 		LEFT JOIN REFERENCE_TABLE ref
