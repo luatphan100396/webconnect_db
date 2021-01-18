@@ -4,7 +4,7 @@ CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Short_Name
 --Created Date: 2021-01-15
 --Description: Get list herd id from string input
 --Output:
---        +Ds1: invalid bull short name animal 17 chars, sex, anim_key, species_code,bull short name
+--        +Ds1: animal 17 chars, sex, anim_key, species_code,bull short name
 --        +Ds2: invalid bull short name 
 --=================================================================================
 (
@@ -41,7 +41,7 @@ BEGIN
 	
 	
 	INSERT INTO SESSION.TmpInputs(INPUT_VALUE)
-	SELECT  ITEM FROM table(fn_Split_String (@INPUT_VALUE,@DELIMITER));
+	SELECT  ITEM FROM table(fn_Split_String (upper(@INPUT_VALUE),@DELIMITER));
 	
 	-- Remove duplicate input
 	MERGE INTO SESSION.TmpInputs as A
@@ -91,7 +91,7 @@ BEGIN
 		 (
 		 INPUT_VALUE
 		 )
-		 SELECT INT_ID
+		 SELECT BULL_SHORT_NAME
 		 FROM SESSION.TmpShortNameLists a with UR;
   
 	    -- Remove duplicate output, same animal ID but has different anim key
