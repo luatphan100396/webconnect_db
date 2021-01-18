@@ -20,11 +20,12 @@ P1: BEGIN
 	DECLARE cursor1 CURSOR WITH RETURN for
 
 		SELECT
-			dSTable.DATA_SOURCE_KEY
+		
+			dSTable.DATA_SOURCE_KEY AS DATA_SOURCE_KEY
 			,row_number()over(order by SOURCE_NAME) as No
-			,dSTable.SOURCE_SHORT_NAME
-			,dSTable.SOURCE_NAME
-			,dSTable.STATUS_CODE
+			,trim(dSTable.SOURCE_SHORT_NAME) AS SOURCE_SHORT_NAME
+			,trim(dSTable.SOURCE_NAME) AS SOURCE_NAME
+			,trim(dSTable.STATUS_CODE) AS STATUS_CODE
 			,CASE WHEN uATable.DATA_SOURCE_KEY IS NOT NULL THEN '0'
 					ELSE '1'
 			END AS IS_DELETE
@@ -34,9 +35,9 @@ P1: BEGIN
 			SELECT DISTINCT DATA_SOURCE_KEY
 			FROM USER_AFFILIATION_TABLE
 		) uATable
-				ON uATable.DATA_SOURCE_KEY = dSTable.DATA_SOURCE_KEY
+				ON trim(uATable.DATA_SOURCE_KEY) = dSTable.DATA_SOURCE_KEY
 		WHERE CLASS_CODE = 'D' AND STATUS_CODE IN ('A', 'S', 'I')
-					AND (@name IS NULL OR LOWER(dSTable.SOURCE_NAME) LIKE '%'||LOWER(@name)||'%')
+					AND (@name IS NULL OR LOWER(trim(dSTable.SOURCE_NAME)) LIKE '%'||LOWER(@name)||'%')
 		ORDER BY dSTable.SOURCE_NAME ASC
 		LIMIT @row_per_page
 		OFFSET (@page_number-1)*@row_per_page
@@ -51,7 +52,7 @@ P1: BEGIN
 		SELECT count(1) as Num_Recs
 		FROM DATA_SOURCE_TABLE dSTable
 		WHERE CLASS_CODE = 'D' AND STATUS_CODE IN ('A', 'S', 'I')
-					AND (@name IS NULL OR LOWER(dSTable.SOURCE_NAME) LIKE '%'||LOWER(@name)||'%')
+					AND (@name IS NULL OR LOWER(trim(dSTable.SOURCE_NAME)) LIKE '%'||LOWER(@name)||'%')
 		WITH UR; 
 	
 	OPEN cursor2;
