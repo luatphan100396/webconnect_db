@@ -23,7 +23,7 @@ P1: BEGIN
 		        row_number()over(order by ROLE_NAME) as No,
 				r.ROLE_KEY,
 		        r.ROLE_SHORT_NAME,
-				r.ROLE_NAME,
+				r.ROLE_NAME  AS DESCRIPTION,
 				ref.DESCRIPTION as STATUS,
 				case when ur.ROLE_KEY IS NOT NULL then '0' 
 				     else '1'
