@@ -23,7 +23,7 @@ P1: BEGIN
 		        row_number()over(order by ROLE_NAME) as No,
 				r.ROLE_KEY,
 		        r.ROLE_SHORT_NAME,
-				r.ROLE_NAME,
+				r.ROLE_NAME  AS DESCRIPTION,
 				ref.DESCRIPTION as STATUS,
 				case when ur.ROLE_KEY IS NOT NULL then '0' 
 				     else '1'
@@ -37,7 +37,7 @@ P1: BEGIN
 		     from USER_ROLE_TABLE  
 		)ur
 		    on ur.ROLE_KEY = r.ROLE_KEY
-		WHERE LOWER(ROLE_NAME) LIKE '%'||LOWER(@ROLE_NAME)||'%'
+		WHERE LOWER(ROLE_SHORT_NAME) LIKE '%'||LOWER(@ROLE_NAME)||'%'
 		ORDER BY ROLE_NAME
 		LIMIT @row_per_page
 		OFFSET (@page_number-1)*@row_per_page
@@ -58,7 +58,7 @@ P1: BEGIN
 		     from USER_ROLE_TABLE  
 		)ur
 		    on ur.ROLE_KEY = r.ROLE_KEY
-		WHERE LOWER(ROLE_NAME) LIKE '%'||LOWER(@ROLE_NAME)||'%'
+		WHERE LOWER(ROLE_SHORT_NAME) LIKE '%'||LOWER(@ROLE_NAME)||'%'
 		WITH UR;
 		OPEN cursor2;
 	END;
