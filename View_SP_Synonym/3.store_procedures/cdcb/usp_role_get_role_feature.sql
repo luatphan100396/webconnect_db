@@ -51,6 +51,7 @@ P1: BEGIN
         on f.COMPONENT_KEY = c.COMPONENT_KEY
     left join ROLE_RESTRICTED_FIELD_TABLE gr
         on gr.FIELD_KEY = f.FIELD_KEY
+        AND gr.ROLE_KEY = c.ROLE_KEY
     where  gr.FIELD_KEY is null
     GROUP by c.ROLE_KEY, f.COMPONENT_KEY ;
 	

@@ -51,6 +51,7 @@ P1: BEGIN
         on f.COMPONENT_KEY = c.COMPONENT_KEY
     left join GROUP_RESTRICTED_FIELD_TABLE gr
         on gr.FIELD_KEY = f.FIELD_KEY
+        and gr.GROUP_KEY = c.GROUP_KEY
     where  gr.FIELD_KEY is null
     group by c.GROUP_KEY, f.COMPONENT_KEY ;
 	
