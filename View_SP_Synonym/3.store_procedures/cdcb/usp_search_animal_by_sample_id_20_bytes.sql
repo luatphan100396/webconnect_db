@@ -119,6 +119,7 @@ BEGIN
 				 	a.ANIM_KEY,
 				 	a.SPECIES_CODE,
 				 	a.SEX_CODE,
+				 	0 as HAS_ERROR,
 					case when  a.ANIM_KEY is not null then '1'
 					      else '0' 
 					end as IS_LINK_TO_ANIMAL, 
