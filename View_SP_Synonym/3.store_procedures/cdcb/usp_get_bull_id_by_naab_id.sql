@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_NAAB_ID
+CREATE OR REPLACE PROCEDURE usp_Get_Bull_ID_By_NAAB_ID
 --================================================================================
 --Author: Linh Pham
 --Created Date: 2021-01-18
