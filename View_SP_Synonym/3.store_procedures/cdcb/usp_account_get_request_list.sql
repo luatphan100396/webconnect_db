@@ -72,6 +72,7 @@ P1: BEGIN
 				OR ( LOWER(aReqTable.USER_NAME) LIKE '%'||v_SEARCH_BY||'%'
 						OR LOWER(aReqTable.EMAIL_ADDR) LIKE '%'||v_SEARCH_BY||'%'
 						OR LOWER(aReqTable.FIRST_NAME) LIKE '%'||v_SEARCH_BY||'%'
+						OR LOWER(aReqTable.LAST_NAME) LIKE '%'||v_SEARCH_BY||'%'
 						OR LOWER(aReqTable.ORGANIZATION) LIKE '%'||v_SEARCH_BY||'%'
 					)
 			)
@@ -93,6 +94,7 @@ P1: BEGIN
 				OR ( LOWER(aReqTable.USER_NAME) LIKE '%'||v_SEARCH_BY||'%'
 						OR LOWER(aReqTable.EMAIL_ADDR) LIKE '%'||v_SEARCH_BY||'%'
 						OR LOWER(aReqTable.FIRST_NAME) LIKE '%'||v_SEARCH_BY||'%'
+						OR LOWER(aReqTable.LAST_NAME) LIKE '%'||v_SEARCH_BY||'%'
 						OR LOWER(aReqTable.ORGANIZATION) LIKE '%'||v_SEARCH_BY||'%'
 					)
 			)

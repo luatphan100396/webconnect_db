@@ -1,13 +1,12 @@
-CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Sample_ID_20_Bytes 
---===================================================================
+CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_NAAB_ID
+--================================================================================
 --Author: Linh Pham
---Created Date: 2020-02-16
---Description: Get list INT_ID from string input
+--Created Date: 2021-01-18
+--Description: Get list bull id from string input
 --Output:
---        +Ds1: Table with sample_id, animal id, animal key, species code, sex code, herd code, ctrl num, has error, 
---              is linked to animal 
---        +Ds2: Animal which has no information returned 
---========================================================================
+--        +Ds1: invalid bull ID : INT_ID
+--        +Ds2: invalid bull id
+--=================================================================================
 (
 	IN @INPUT_VALUE VARCHAR(10000) 
 	,@DELIMITER VARCHAR(1) default ','
@@ -24,11 +23,11 @@ BEGIN
 	
 	)WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
-	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpIntIDChar20Lists   
-	(
-		SAMPLE_ID VARCHAR(20),
-		ANIM_KEY INT,
-		INT_ID CHAR(17), 
+	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpNAABLists   
+	(   
+		NAAB10_SEG VARCHAR(60),
+		INT_ID CHAR(17),
+		ANIM_KEY INT, 
 		SEX_CODE char(1),
 		SPECIES_CODE char(1), 
 		ORDER INT
@@ -49,58 +48,59 @@ BEGIN
 	 using
 	 (
   
-		 SELECT 
-		 		INPUT_VALUE, 
-		 		MIN(ORDER) AS MIN_ORDER
+		 SELECT INPUT_VALUE, MIN(ORDER) AS MIN_ORDER
 		 FROM SESSION.TmpInputs t	
 		 GROUP BY INPUT_VALUE
 		 with UR
 	 )AS B
-	 ON  A.INPUT_VALUE = B.INPUT_VALUE 
-	 and A.ORDER <> B.MIN_ORDER 
+	 ON  A.INPUT_VALUE = B.INPUT_VALUE and A.ORDER <> B.MIN_ORDER 
 	 WHEN MATCHED THEN
 	 DELETE
 	 ;
 	  
 	     -- Find matching animal id in id_xref_table
-		INSERT INTO SESSION.TmpIntIDChar20Lists
+		INSERT INTO SESSION.TmpNAABLists
 		(
-			SAMPLE_ID,
-			ANIM_KEY,
-			INT_ID, 
+			NAAB10_SEG,
+			INT_ID,
+			ANIM_KEY, 
 			SEX_CODE,
 			SPECIES_CODE,  
 			ORDER
 		)
 		  
 		 SELECT
-		 	 a.SAMPLE_ID, 
-			 xref.ANIM_KEY, 
-			 xref.INT_ID,  
+		 	 ai.NAAB10_SEG, 
+			 a.INT_ID,  
+			 a.ANIM_KEY,
 			 a.SEX_CODE,
-			 xref.SPECIES_CODE,
-		 t.ORDER
+			 a.SPECIES_CODE,
+			 t.ORDER
 		 FROM  SESSION.TmpInputs t
-		 JOIN GENOTYPE_STATUS_TABLE a
-		 on upper(t.INPUT_VALUE) = a.SAMPLE_ID
-		 LEFT JOIN ID_XREF_TABLE xref 
-		 on xref.ANIM_KEY = a.ANIM_KEY 
+		 INNER JOIN AI_CODES_TABLE ai
+		 	on trim(upper(t.INPUT_VALUE)) = upper(ai.NAAB10_SEG)
+		 INNER JOIN ID_XREF_TABLE a
+		 	ON ai.ANIM_KEY=a.ANIM_KEY
+		 	where a.SEX_CODE='M'
+		 	and a.SPECIES_CODE='0'
+		 ORDER BY ORDER
 		 with UR;
-		 
+		 		 
 		 
 		 INSERT INTO SESSION.TmpInputValid 
 		 (
 		 INPUT_VALUE
 		 )
-		 SELECT a.SAMPLE_ID
-		 FROM SESSION.TmpIntIDChar20Lists a with UR;
+		 SELECT NAAB10_SEG
+		 FROM SESSION.TmpNAABLists a with UR;
+  
 	    -- Remove duplicate output, same animal ID but has different anim key
 		
-		MERGE INTO SESSION.TmpIntIDChar20Lists as A
+		MERGE INTO SESSION.TmpNAABLists as A
 		 using
 		 ( 
 			 SELECT INT_ID, MIN(ANIM_KEY) AS MIN_ANIM_KEY -- keep min animal_key
-			 FROM SESSION.TmpIntIDChar20Lists t	
+			 FROM SESSION.TmpNAABLists t	
 			 GROUP BY INT_ID with UR
 		 )AS B
 		 ON  A.INT_ID = B.INT_ID and A.ANIM_KEY <> B.MIN_ANIM_KEY
@@ -113,18 +113,16 @@ BEGIN
      	begin
 		 	DECLARE cursor1 CURSOR WITH RETURN for
 		 		
-		 	SELECT  
-		 			a.SAMPLE_ID,
-				 	a.INT_ID AS ANIMAL_ID,
-				 	a.ANIM_KEY,
-				 	a.SPECIES_CODE,
-				 	a.SEX_CODE,
-				 	0 as HAS_ERROR,
-					case when  a.ANIM_KEY is not null then '1'
-					      else '0' 
-					end as IS_LINK_TO_ANIMAL, 
-					row_number()over(order by a.ORDER )  as ORDER
-		 	FROM SESSION.TmpIntIDChar20Lists a
+		 	SELECT
+		 	a.NAAB10_SEG,   
+		 	a.INT_ID AS ANIMAL_ID,
+		 	0 as HAS_ERROR,
+			case when  a.ANIM_KEY is not null then '1'
+			      else '0' 
+			end as IS_LINK_TO_ANIMAL, 
+			row_number()over(order by a.ORDER )  as ORDER
+		 	FROM SESSION.TmpNAABLists a
+		     
 			ORDER BY ORDER with UR;
 		  
 		 	OPEN cursor1;
@@ -145,4 +143,4 @@ BEGIN
 		 	 
 	   end;
 	    
-END
+END 
