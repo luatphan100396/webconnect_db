@@ -4,8 +4,8 @@ CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Naab_Code
 --Created Date: 2021-01-15
 --Description: Get list naab10_seg from string input
 --Output:
---        +Ds1: valid naab10_seg
---        +Ds3: animal 17 chars, sex, anim_key, species_code,naab10_seg
+--        +Ds1: animal 17 chars, sex, anim_key, species_code,naab10_seg
+--        +Ds2: valid naab10_seg
 --=================================================================================
 (
 	IN @INPUT_VALUE VARCHAR(10000) 
@@ -78,16 +78,46 @@ BEGIN
 		 t.ORDER
 		 FROM  SESSION.TmpInputs t
 		 INNER JOIN AI_CODES_TABLE ai
-		 on trim(upper(t.INPUT_VALUE)) = trim(upper(ai.NAAB10_SEG)) 
-		 
+		 on trim(upper(t.INPUT_VALUE)) = trim(case when length(ai.NAAB10_SEG) >=10 then substring(ai.NAAB10_SEG,1,10)
+				      else null end )
 		 INNER JOIN ID_XREF_TABLE a
 		 ON ai.ANIM_KEY=a.ANIM_KEY
 		 where a.SEX_CODE='M'
 		 and a.SPECIES_CODE='0'
 		 ORDER BY ORDER
 		 with UR;
-		 		 
-		 
+ -- Find matching animal id in error data
+		INSERT INTO SESSION.TmpNaabLists
+		 (
+		 	NAAB10_SEG,
+		    ANIM_KEY,
+			INT_ID, 
+			SEX_CODE,
+			SPECIES_CODE,  
+			ORDER
+		 )
+		  SELECT 
+		  		NULL AS NAAB10_SEG,
+				NULL AS ANIM_KEY, 
+				a.INT_ID,  
+				'U' AS  SEX_CODE,
+				a.SPECIES_CODE,
+				t.ORDER
+		FROM  SESSION.TmpInputs t
+		LEFT JOIN 
+		 		(SELECT DISTINCT 
+				 		INT_ID,
+						NAAB10_SEG
+				FROM SESSION.TmpNaabLists  
+		 		)validAnimal 
+		 	ON trim(upper(t.INPUT_VALUE))=validAnimal.NAAB10_SEG
+		JOIN ANIM_KEY_HAS_ERROR a
+			ON validAnimal.INT_ID = a.INT_ID
+			WHERE validAnimal.INT_ID IS NULL
+		  
+		 	with UR;
+		 	
+		 	
 		 INSERT INTO SESSION.TmpInputValid 
 		 (
 		 INPUT_VALUE
@@ -119,13 +149,17 @@ BEGIN
 		 	a.ANIM_KEY,
 		 	a.SPECIES_CODE,
 		 	a.SEX_CODE,
-		 	0 as HAS_ERROR,
+		 	case when  aHasErr.INT_ID is not null then '1'
+		      else '0' 
+		    end as HAS_ERROR,
 			case when  a.ANIM_KEY is not null then '1'
 			      else '0' 
 			end as IS_LINK_TO_ANIMAL, 
 			row_number()over(order by a.ORDER )  as ORDER
 		 	FROM SESSION.TmpNaabLists a
-		     
+		    LEFT JOIN ANIM_KEY_HAS_ERROR aHasErr 
+		      on aHasErr.INT_ID = a.INT_ID 
+		      and aHasErr.SPECIES_CODE = a.SPECIES_CODE
 			ORDER BY ORDER with UR;
 		  
 		 	OPEN cursor1;
