@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION fn_Check_Exist_Group
 --Description: Check whether the input Role has been existed
 --======================================================
 (
-	@GROUP_SHORT_NAME VARCHAR(20),
+	@GROUP_SHORT_NAME VARCHAR(50),
 	@GROUP_KEY INT 
 ) 
 RETURNS INTEGER

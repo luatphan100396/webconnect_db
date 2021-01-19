@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION fn_Check_Exist_Role
 --Description: Check whether the input Role has been existed
 --======================================================
 (
-	@ROLE_SHORT_NAME VARCHAR(20),
+	@ROLE_SHORT_NAME VARCHAR(50),
 	@ROLE_KEY INT 
 ) 
 RETURNS INTEGER
