@@ -346,9 +346,9 @@ P1: BEGIN
 			 
 		   set v_USER_KEY = (select coalesce(max(user_key),v_USER_KEY) 
 		                     from USER_INFO_TABLE 
-						     where FIRST_NAME = v_FIRST_NAME 
-						          and LAST_NAME = v_LAST_NAME
-						          and EMAIL_ADDR = v_EMAIL_ADDRESS
+						     where upper(FIRST_NAME) = upper(v_FIRST_NAME)
+						          and upper(LAST_NAME) = upper(v_LAST_NAME)
+						          and upper(EMAIL_ADDR) = upper(v_EMAIL_ADDRESS)
 						          and CREATED_TIME =  v_CURRENT_TIME  
 			     );
 			       
@@ -396,7 +396,7 @@ P1: BEGIN
 			         v_USER_KEY AS USER_KEY,
 			         g.GROUP_KEY 
 				  from  GROUP_TABLE g
-				  where upper(GROUP_SHORT_NAME) = v_GROUP limit 1  
+				  where upper(GROUP_SHORT_NAME) = upper(v_GROUP) limit 1  
 				 )AS B
 				 ON  A.USER_KEY = B.USER_KEY 
 				 WHEN NOT MATCHED THEN
@@ -426,7 +426,7 @@ P1: BEGIN
 			 WHERE ROLE_KEY NOT IN (select r.ROLE_KEY  
 									from SESSION.TmpRoles t
 									inner join ROLE_TABLE r
-								        on t.ROLE = r.ROLE_SHORT_NAME 
+								        on upper(t.ROLE) = upper(r.ROLE_SHORT_NAME) 
 			                     ) 
 			        and u.USER_KEY = v_USER_KEY;
 			 
@@ -439,7 +439,7 @@ P1: BEGIN
 				         r.ROLE_KEY 
 					  from SESSION.TmpRoles t
 					  inner join ROLE_TABLE r
-					      on t.ROLE = r.ROLE_SHORT_NAME
+					      on upper(t.ROLE) = upper(r.ROLE_SHORT_NAME)
 				 )AS B
 				 ON  A.USER_KEY = B.USER_KEY AND A.ROLE_KEY = B.ROLE_KEY 
 				 WHEN NOT MATCHED THEN
@@ -469,7 +469,7 @@ P1: BEGIN
 			    WHERE DATA_SOURCE_KEY NOT IN (select r.DATA_SOURCE_KEY  
 											  from SESSION.TmpAffiliates t
 											  inner join SESSION.Tmp_DATA_SOURCE_TABLE r
-											      on t.SOURCE_SHORT_NAME = r.SOURCE_SHORT_NAME 
+											      on upper(t.SOURCE_SHORT_NAME) = upper(r.SOURCE_SHORT_NAME) 
 											      and t.CLASS_CODE = r.CLASS_CODE 
 			                     ) 
 			        and u.USER_KEY = v_USER_KEY;
@@ -491,10 +491,10 @@ P1: BEGIN
 					 
 						FROM SESSION.TmpAffiliates a
 						inner join SESSION.Tmp_DATA_SOURCE_TABLE s
-						   on a.SOURCE_SHORT_NAME = s.SOURCE_SHORT_NAME
+						   on upper(a.SOURCE_SHORT_NAME) = upper(s.SOURCE_SHORT_NAME)
 						   and a.CLASS_CODE = s.CLASS_CODE
 						left JOIN SESSION.TmpAffiliatePermission p
-						   on a.source_short_name = p.source_short_name 
+						   on upper(a.source_short_name) = upper(p.source_short_name)
 						   and a.ID = p.ID
 						group by s.DATA_SOURCE_KEY
 						
@@ -547,4 +547,5 @@ P1: BEGIN
 				 
 				 
 			 END IF ;  
+			 
 END P1 
