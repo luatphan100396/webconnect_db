@@ -86,7 +86,36 @@ BEGIN
 		 AND a.SPECIES_CODE=an.SPECIES_CODE
 		 ORDER BY ORDER
 		 with UR;
-		 		 
+		 	
+		 INSERT INTO SESSION.TmpFullNameLists
+		 (
+		 	ANIM_NAME,
+		    ANIM_KEY,
+			INT_ID, 
+			SEX_CODE,
+			SPECIES_CODE,  
+			ORDER
+		 )
+		  SELECT 
+		  		NULL AS ANIM_NAME,
+				NULL AS ANIM_KEY, 
+				a.INT_ID,  
+				'U' AS  SEX_CODE,
+				a.SPECIES_CODE,
+				t.ORDER
+		FROM  SESSION.TmpInputs t
+		LEFT JOIN 
+		 		(SELECT DISTINCT 
+				 		INT_ID,
+						ANIM_NAME
+				FROM SESSION.TmpFullNameLists  
+		 		)validAnimal 
+		 	ON trim(upper(t.INPUT_VALUE))=validAnimal.ANIM_NAME
+		JOIN ANIM_KEY_HAS_ERROR a
+			ON validAnimal.INT_ID = a.INT_ID
+			WHERE validAnimal.INT_ID IS NULL
+		  
+		 	with UR;	 
 		 
 		 INSERT INTO SESSION.TmpInputValid 
 		 (
@@ -119,13 +148,17 @@ BEGIN
 		 	a.ANIM_KEY,
 		 	a.SPECIES_CODE,
 		 	a.SEX_CODE,
-		 	0 as HAS_ERROR,
+		 	case when  aHasErr.INT_ID is not null then '1'
+		      else '0' 
+		    end as HAS_ERROR,
 			case when  a.ANIM_KEY is not null then '1'
 			      else '0' 
 			end as IS_LINK_TO_ANIMAL, 
 			row_number()over(order by a.ORDER )  as ORDER
 		 	FROM SESSION.TmpFullNameLists a
-		     
+		    LEFT JOIN ANIM_KEY_HAS_ERROR aHasErr 
+		       on aHasErr.INT_ID = a.INT_ID 
+		       and aHasErr.SPECIES_CODE = a.SPECIES_CODE 
 			ORDER BY ORDER with UR;
 		  
 		 	OPEN cursor1;
