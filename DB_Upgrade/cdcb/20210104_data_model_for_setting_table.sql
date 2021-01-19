@@ -15,4 +15,4 @@ CREATE TABLE SETTING_TABLE
 INSERT INTO SETTING_TABLE(NAME,STRING_VALUE)      
  VALUES     ('Maintenance_Message','The CDCB database is currently locked. Any submission mode will be processed automatically as soon as the database is unlocked');	
 INSERT INTO SETTING_TABLE(NAME,STRING_VALUE)      
- VALUES     ('Maintenance_Collor','#E79593');	
+ VALUES     ('Maintenance_Color','#E79593');	
