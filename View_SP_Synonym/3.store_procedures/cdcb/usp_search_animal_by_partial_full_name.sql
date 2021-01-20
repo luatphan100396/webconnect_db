@@ -1,11 +1,11 @@
-CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Short_Name
+CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Partial_Full_Name
 --================================================================================
 --Author: Tuyen Nguyen
 --Created Date: 2021-01-15
---Description: Get list herd id from string input
+--Description: Get list full name from string input
 --Output:
---        +Ds1: animal 17 chars, sex, anim_key, species_code,bull short name
---        +Ds2: invalid bull short name 
+--        +Ds1: animal 17 chars, sex, anim_key, species_code,full name
+--        +Ds2: invalid full name 
 --=================================================================================
 (
 	IN @INPUT_VALUE VARCHAR(10000) 
@@ -23,9 +23,9 @@ BEGIN
 	
 	)WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
-	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpShortNameLists   
+	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpFullNameLists   
 	(   
-	    BULL_SHORT_NAME CHAR(20),
+	    ANIM_NAME VARCHAR(30),
 		ANIM_KEY INT,
 		INT_ID CHAR(17), 
 		SEX_CODE char(1),
@@ -41,7 +41,7 @@ BEGIN
 	
 	
 	INSERT INTO SESSION.TmpInputs(INPUT_VALUE)
-	SELECT  ITEM FROM table(fn_Split_String (upper(@INPUT_VALUE),@DELIMITER));
+	SELECT  ITEM FROM table(fn_Split_String (@INPUT_VALUE,@DELIMITER));
 	
 	-- Remove duplicate input
 	MERGE INTO SESSION.TmpInputs as A
@@ -59,9 +59,9 @@ BEGIN
 	 ;
 	  
 	     -- Find matching animal id in id_xref_table
-		INSERT INTO SESSION.TmpShortNameLists
+		INSERT INTO SESSION.TmpFullNameLists
 		(
-		    BULL_SHORT_NAME,
+		    ANIM_NAME,
 			ANIM_KEY,
 			INT_ID, 
 			SEX_CODE,
@@ -70,28 +70,26 @@ BEGIN
 		)
 		  
 		 SELECT 
-		 ai.BULL_SHORT_NAME,
+		 an.ANIM_NAME,
 		 a.ANIM_KEY, 
 		 a.INT_ID,  
 		 a.SEX_CODE,
 		 a.SPECIES_CODE,
 		 t.ORDER
 		 FROM  SESSION.TmpInputs t
-		 INNER JOIN AI_CODES_TABLE ai
-		 on trim(upper(t.INPUT_VALUE)) = trim(upper(ai.BULL_SHORT_NAME)) 
-		 INNER JOIN ID_XREF_TABLE a
-		 ON ai.ANIM_KEY=a.ANIM_KEY
-		LEFT JOIN ANIM_KEY_HAS_ERROR aHasErr 
-		     on aHasErr.INT_ID = a.INT_ID 
-		     and aHasErr.SPECIES_CODE = a.SPECIES_CODE 
-		 where a.SEX_CODE='M'
-		 and a.SPECIES_CODE='0'
+		 INNER JOIN ANIM_NAME_TABLE an
+		 on trim(upper(an.ANIM_NAME)) LIKE '%'||trim(upper(t.INPUT_VALUE))||'%'
+		 
+		 JOIN ID_XREF_TABLE a
+		 ON an.INT_ID=a.INT_ID
+		 AND a.SEX_CODE=an.SEX_CODE
+		 AND a.SPECIES_CODE=an.SPECIES_CODE
 		 ORDER BY ORDER
 		 with UR;
-		 
-		  INSERT INTO SESSION.TmpShortNameLists
+		 	
+		 INSERT INTO SESSION.TmpFullNameLists
 		 (
-		 	BULL_SHORT_NAME,
+		 	ANIM_NAME,
 		    ANIM_KEY,
 			INT_ID, 
 			SEX_CODE,
@@ -99,7 +97,7 @@ BEGIN
 			ORDER
 		 )
 		  SELECT 
-		  		NULL AS BULL_SHORT_NAME,
+		  		NULL AS ANIM_NAME,
 				NULL AS ANIM_KEY, 
 				a.INT_ID,  
 				'U' AS  SEX_CODE,
@@ -109,30 +107,30 @@ BEGIN
 		LEFT JOIN 
 		 		(SELECT DISTINCT 
 				 		INT_ID,
-						BULL_SHORT_NAME
-				FROM SESSION.TmpShortNameLists  
+						ANIM_NAME
+				FROM SESSION.TmpFullNameLists  
 		 		)validAnimal 
-		 	ON trim(upper(t.INPUT_VALUE))=validAnimal.BULL_SHORT_NAME
+		 	ON trim(upper(t.INPUT_VALUE))=validAnimal.ANIM_NAME
 		JOIN ANIM_KEY_HAS_ERROR a
 			ON validAnimal.INT_ID = a.INT_ID
 			WHERE validAnimal.INT_ID IS NULL
 		  
-		 	with UR;		 
+		 	with UR;	 
 		 
 		 INSERT INTO SESSION.TmpInputValid 
 		 (
 		 INPUT_VALUE
 		 )
-		 SELECT BULL_SHORT_NAME
-		 FROM SESSION.TmpShortNameLists a with UR;
+		 SELECT ANIM_NAME
+		 FROM SESSION.TmpFullNameLists a with UR;
   
 	    -- Remove duplicate output, same animal ID but has different anim key
 		
-		MERGE INTO SESSION.TmpShortNameLists as A
+		MERGE INTO SESSION.TmpFullNameLists as A
 		 using
 		 ( 
 			 SELECT INT_ID, MIN(ANIM_KEY) AS MIN_ANIM_KEY -- keep min animal_key
-			 FROM SESSION.TmpShortNameLists t	
+			 FROM SESSION.TmpFullNameLists t	
 			 GROUP BY INT_ID with UR
 		 )AS B
 		 ON  A.INT_ID = B.INT_ID and A.ANIM_KEY <> B.MIN_ANIM_KEY
@@ -146,7 +144,7 @@ BEGIN
 		 	DECLARE cursor1 CURSOR WITH RETURN for
 		 		
 		 	SELECT  a.INT_ID AS ANIMAL_ID,
-		 	a.BULL_SHORT_NAME,
+		 	a.ANIM_NAME,
 		 	a.ANIM_KEY,
 		 	a.SPECIES_CODE,
 		 	a.SEX_CODE,
@@ -157,10 +155,10 @@ BEGIN
 			      else '0' 
 			end as IS_LINK_TO_ANIMAL, 
 			row_number()over(order by a.ORDER )  as ORDER
-		 	FROM SESSION.TmpShortNameLists a
+		 	FROM SESSION.TmpFullNameLists a
 		    LEFT JOIN ANIM_KEY_HAS_ERROR aHasErr 
 		       on aHasErr.INT_ID = a.INT_ID 
-		       and aHasErr.SPECIES_CODE = a.SPECIES_CODE
+		       and aHasErr.SPECIES_CODE = a.SPECIES_CODE 
 			ORDER BY ORDER with UR;
 		  
 		 	OPEN cursor1;
@@ -181,4 +179,4 @@ BEGIN
 		 	 
 	   end;
 	    
-END
+END 

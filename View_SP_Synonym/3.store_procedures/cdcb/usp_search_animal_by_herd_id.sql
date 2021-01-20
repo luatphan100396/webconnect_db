@@ -53,6 +53,8 @@ BEGIN
 	 WHEN MATCHED THEN
 	 DELETE
 	 ;
+	 
+	  
 	  
 	     -- Find matching animal id in id_xref_table
 		INSERT INTO SESSION.TmpHerdCodeLists
@@ -70,6 +72,12 @@ BEGIN
 		 ORDER BY ORDER
 		 with UR;
 		 
+		 INSERT INTO SESSION.TmpInputValid 
+		 (
+		 INPUT_VALUE
+		 )
+		 SELECT HERD_CODE
+		 FROM SESSION.TmpHerdCodeLists a with UR;
 	-- DS1: output list
      	begin
 		 	DECLARE cursor1 CURSOR WITH RETURN for
