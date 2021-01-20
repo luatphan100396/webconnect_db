@@ -38,6 +38,7 @@ P1: BEGIN
 		)ur
 		    on ur.ROLE_KEY = r.ROLE_KEY
 		WHERE LOWER(ROLE_SHORT_NAME) LIKE '%'||LOWER(@ROLE_NAME)||'%'
+			OR LOWER(ROLE_NAME) LIKE '%'||LOWER(@ROLE_NAME)||'%'
 		ORDER BY ROLE_NAME
 		LIMIT @row_per_page
 		OFFSET (@page_number-1)*@row_per_page
@@ -59,6 +60,7 @@ P1: BEGIN
 		)ur
 		    on ur.ROLE_KEY = r.ROLE_KEY
 		WHERE LOWER(ROLE_SHORT_NAME) LIKE '%'||LOWER(@ROLE_NAME)||'%'
+			OR LOWER(ROLE_NAME) LIKE '%'||LOWER(@ROLE_NAME)||'%'
 		WITH UR;
 		OPEN cursor2;
 	END;

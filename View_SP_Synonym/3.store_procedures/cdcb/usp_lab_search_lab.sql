@@ -40,7 +40,9 @@ P1: BEGIN
 		) uATable
 				ON uATable.DATA_SOURCE_KEY = dSTable.DATA_SOURCE_KEY
 		WHERE CLASS_CODE = 'L' AND STATUS_CODE IN ('A', 'S', 'I')
-					AND (@name IS NULL OR LOWER(trim(dSTable.SOURCE_SHORT_NAME)) LIKE '%'||LOWER(@name)||'%')
+					AND (@name IS NULL 
+							OR LOWER(trim(dSTable.SOURCE_SHORT_NAME)) LIKE '%'||LOWER(@name)||'%'
+							OR LOWER(trim(dSTable.SOURCE_NAME)) LIKE '%'||LOWER(@name)||'%')
 		ORDER BY dSTable.SOURCE_NAME ASC
 		LIMIT @row_per_page
 		OFFSET (@page_number-1)*@row_per_page
