@@ -33,7 +33,8 @@ BEGIN
 			limit 1; 
     END IF; 
 	 
-	 
+    -- 
+	
 	BEGIN
 		DECLARE cursor1 CURSOR WITH RETURN for
 	
@@ -41,7 +42,10 @@ BEGIN
 		        a.USER_NAME, 
 		        a.PASSWORD 
 		FROM  USER_ACCOUNT_TABLE a
-		WHERE a.USER_KEY = v_USER_KEY
+		INNER JOIN USER_INFO_TABLE u
+		    ON u.USER_KEY = a.USER_KEY
+		    and a.USER_KEY = v_USER_KEY
+		    and UPPER(u.STATUS_CODE)='A' 
 		WITH UR;
 	
 		OPEN cursor1;
