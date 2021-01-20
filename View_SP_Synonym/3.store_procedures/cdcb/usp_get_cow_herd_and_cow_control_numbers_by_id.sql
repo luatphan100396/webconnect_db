@@ -1,12 +1,12 @@
-CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Herd_ID 
---================================================================================
---Author: Tuyen Nguyen
---Created Date: 2021-01-14
---Description: Get list herd id from string input
+CREATE OR REPLACE PROCEDURE usp_Get_Cow_Herd_And_Cow_Control_Numbers_By_ID
+--=================================================================================================
+--Author: Linh Pham
+--Created Date: 2020-01-19
+--Description: Get list herd, control id from string input
 --Output:
---        +Ds1: invalid herd code
---        +Ds2: valid herd code
---=================================================================================
+--        +Ds1: Table with animal id,  herd code, ctrl num
+--        +Ds2: Invalid item 
+--=================================================================================================
 (
 	IN @INPUT_VALUE VARCHAR(10000) 
 	,@DELIMITER VARCHAR(1) default ','
@@ -23,17 +23,21 @@ BEGIN
 	
 	)WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
-	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpHerdCodeLists   
-	(   
-	    HERD_CODE INT,
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpIDList   
+	(
+		ANIM_KEY INT,
+		INT_ID CHAR(17), 
+		SEX_CODE char(1),
+		SPECIES_CODE char(1),
+		HERD_CODE int,
+		CTRL_NUM int,
 		ORDER INT
-	) WITH REPLACE  ON COMMIT PRESERVE ROWS;
+	) WITH REPLACE ON COMMIT PRESERVE ROWS;
   
-     
 	   DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpInputValid 
 	(
 		INPUT_VALUE varchar(128) 
-	) WITH REPLACE ON COMMIT PRESERVE ROWS;
+	)  WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
 	
 	INSERT INTO SESSION.TmpInputs(INPUT_VALUE)
@@ -53,43 +57,54 @@ BEGIN
 	 WHEN MATCHED THEN
 	 DELETE
 	 ;
-	 
 	  
-	  
-	     -- Find matching animal id in id_xref_table
-		INSERT INTO SESSION.TmpHerdCodeLists
+		INSERT INTO SESSION.TmpIDList
 		(
-		    HERD_CODE,
+			ANIM_KEY,
+			INT_ID, 
+			SEX_CODE,
+			SPECIES_CODE, 
+			HERD_CODE,
+			CTRL_NUM, 
 			ORDER
 		)
 		  
 		 SELECT 
-		 ai.HERD_CODE,
-		 t.ORDER
+			 a.ANIM_KEY, 
+			 a.INT_ID,  
+			 a.SEX_CODE,
+			 a.SPECIES_CODE, 
+			 a.HERD_CODE,
+			 a.CTRL_NUM, 
+			 t.ORDER
 		 FROM  SESSION.TmpInputs t
-		 INNER JOIN HERDOWNER_TABLE ai
-		 on upper(t.INPUT_VALUE) = cast(ai.HERD_CODE as varchar(10))
-		 ORDER BY ORDER
-		 with UR;
+		 JOIN ANIM_KEY_HERD_CTRL_NUM a 
+		     on upper(t.INPUT_VALUE) = a.INT_ID
+		 with UR; 
+		 
 		 
 		 INSERT INTO SESSION.TmpInputValid 
 		 (
 		 INPUT_VALUE
 		 )
-		 SELECT HERD_CODE
-		 FROM SESSION.TmpHerdCodeLists a with UR;
-	-- DS1: output list
+		 SELECT INT_ID
+		 FROM SESSION.TmpIDList a with UR;
+		 
+		 
+		 --DS1: retrive data
      	begin
-		 	DECLARE cursor1 CURSOR WITH RETURN for
+		 	DECLARE cursor0 CURSOR WITH RETURN for
 		 		
-		 	SELECT 
-		 	HERD_CODE,
-		 	ORDER
-		 	FROM SESSION.TmpHerdCodeLists 
-		 	  
-			ORDER BY ORDER with UR;
+		 	SELECT  
+				a.INT_ID AS ANIMAL_ID,
+			 	a.HERD_CODE,
+			 	a.CTRL_NUM,
+				a.ORDER
+		 	FROM  SESSION.TmpIDList a
+			ORDER BY a.ORDER, a.INT_ID
+			 with UR;
 		  
-		 	OPEN cursor1;
+		 	OPEN cursor0;
 		 	 
 	   end; 
 	   
@@ -107,4 +122,5 @@ BEGIN
 		 	 
 	   end;
 	    
-END 
+END
+

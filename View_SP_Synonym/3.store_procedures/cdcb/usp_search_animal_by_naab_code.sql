@@ -1,11 +1,11 @@
-CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Short_Name
+CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Naab_Code
 --================================================================================
 --Author: Tuyen Nguyen
 --Created Date: 2021-01-15
---Description: Get list herd id from string input
+--Description: Get list naab10_seg from string input
 --Output:
---        +Ds1: animal 17 chars, sex, anim_key, species_code,bull short name
---        +Ds2: invalid bull short name 
+--        +Ds1: animal 17 chars, sex, anim_key, species_code,naab10_seg
+--        +Ds2: valid naab10_seg
 --=================================================================================
 (
 	IN @INPUT_VALUE VARCHAR(10000) 
@@ -23,9 +23,9 @@ BEGIN
 	
 	)WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
-	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpShortNameLists   
+	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpNaabLists   
 	(   
-	    BULL_SHORT_NAME CHAR(20),
+	    NAAB10_SEG CHAR(60),
 		ANIM_KEY INT,
 		INT_ID CHAR(17), 
 		SEX_CODE char(1),
@@ -59,9 +59,9 @@ BEGIN
 	 ;
 	  
 	     -- Find matching animal id in id_xref_table
-		INSERT INTO SESSION.TmpShortNameLists
+		INSERT INTO SESSION.TmpNaabLists
 		(
-		    BULL_SHORT_NAME,
+		    NAAB10_SEG,
 			ANIM_KEY,
 			INT_ID, 
 			SEX_CODE,
@@ -70,7 +70,7 @@ BEGIN
 		)
 		  
 		 SELECT 
-		 ai.BULL_SHORT_NAME,
+		 ai.NAAB10_SEG,
 		 a.ANIM_KEY, 
 		 a.INT_ID,  
 		 a.SEX_CODE,
@@ -78,20 +78,18 @@ BEGIN
 		 t.ORDER
 		 FROM  SESSION.TmpInputs t
 		 INNER JOIN AI_CODES_TABLE ai
-		 on trim(upper(t.INPUT_VALUE)) = trim(upper(ai.BULL_SHORT_NAME)) 
+		 on trim(upper(t.INPUT_VALUE)) = trim(case when length(ai.NAAB10_SEG) >=10 then substring(ai.NAAB10_SEG,1,10)
+				      else null end )
 		 INNER JOIN ID_XREF_TABLE a
 		 ON ai.ANIM_KEY=a.ANIM_KEY
-		LEFT JOIN ANIM_KEY_HAS_ERROR aHasErr 
-		     on aHasErr.INT_ID = a.INT_ID 
-		     and aHasErr.SPECIES_CODE = a.SPECIES_CODE 
 		 where a.SEX_CODE='M'
 		 and a.SPECIES_CODE='0'
 		 ORDER BY ORDER
 		 with UR;
-		 
-		  INSERT INTO SESSION.TmpShortNameLists
+ -- Find matching animal id in error data
+		INSERT INTO SESSION.TmpNaabLists
 		 (
-		 	BULL_SHORT_NAME,
+		 	NAAB10_SEG,
 		    ANIM_KEY,
 			INT_ID, 
 			SEX_CODE,
@@ -99,7 +97,7 @@ BEGIN
 			ORDER
 		 )
 		  SELECT 
-		  		NULL AS BULL_SHORT_NAME,
+		  		NULL AS NAAB10_SEG,
 				NULL AS ANIM_KEY, 
 				a.INT_ID,  
 				'U' AS  SEX_CODE,
@@ -109,30 +107,31 @@ BEGIN
 		LEFT JOIN 
 		 		(SELECT DISTINCT 
 				 		INT_ID,
-						BULL_SHORT_NAME
-				FROM SESSION.TmpShortNameLists  
+						NAAB10_SEG
+				FROM SESSION.TmpNaabLists  
 		 		)validAnimal 
-		 	ON trim(upper(t.INPUT_VALUE))=validAnimal.BULL_SHORT_NAME
+		 	ON trim(upper(t.INPUT_VALUE))=validAnimal.NAAB10_SEG
 		JOIN ANIM_KEY_HAS_ERROR a
 			ON validAnimal.INT_ID = a.INT_ID
 			WHERE validAnimal.INT_ID IS NULL
 		  
-		 	with UR;		 
-		 
+		 	with UR;
+		 	
+		 	
 		 INSERT INTO SESSION.TmpInputValid 
 		 (
 		 INPUT_VALUE
 		 )
-		 SELECT BULL_SHORT_NAME
-		 FROM SESSION.TmpShortNameLists a with UR;
+		 SELECT NAAB10_SEG
+		 FROM SESSION.TmpNaabLists a with UR;
   
 	    -- Remove duplicate output, same animal ID but has different anim key
 		
-		MERGE INTO SESSION.TmpShortNameLists as A
+		MERGE INTO SESSION.TmpNaabLists as A
 		 using
 		 ( 
 			 SELECT INT_ID, MIN(ANIM_KEY) AS MIN_ANIM_KEY -- keep min animal_key
-			 FROM SESSION.TmpShortNameLists t	
+			 FROM SESSION.TmpNaabLists t	
 			 GROUP BY INT_ID with UR
 		 )AS B
 		 ON  A.INT_ID = B.INT_ID and A.ANIM_KEY <> B.MIN_ANIM_KEY
@@ -146,7 +145,7 @@ BEGIN
 		 	DECLARE cursor1 CURSOR WITH RETURN for
 		 		
 		 	SELECT  a.INT_ID AS ANIMAL_ID,
-		 	a.BULL_SHORT_NAME,
+		 	a.NAAB10_SEG,
 		 	a.ANIM_KEY,
 		 	a.SPECIES_CODE,
 		 	a.SEX_CODE,
@@ -157,10 +156,10 @@ BEGIN
 			      else '0' 
 			end as IS_LINK_TO_ANIMAL, 
 			row_number()over(order by a.ORDER )  as ORDER
-		 	FROM SESSION.TmpShortNameLists a
+		 	FROM SESSION.TmpNaabLists a
 		    LEFT JOIN ANIM_KEY_HAS_ERROR aHasErr 
-		       on aHasErr.INT_ID = a.INT_ID 
-		       and aHasErr.SPECIES_CODE = a.SPECIES_CODE
+		      on aHasErr.INT_ID = a.INT_ID 
+		      and aHasErr.SPECIES_CODE = a.SPECIES_CODE
 			ORDER BY ORDER with UR;
 		  
 		 	OPEN cursor1;
@@ -181,4 +180,4 @@ BEGIN
 		 	 
 	   end;
 	    
-END
+END 

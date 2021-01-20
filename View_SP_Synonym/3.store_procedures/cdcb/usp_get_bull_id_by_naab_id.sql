@@ -1,11 +1,11 @@
-CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Short_Name
+CREATE OR REPLACE PROCEDURE usp_Get_Bull_ID_By_NAAB_ID
 --================================================================================
---Author: Tuyen Nguyen
---Created Date: 2021-01-15
---Description: Get list herd id from string input
+--Author: Linh Pham
+--Created Date: 2021-01-18
+--Description: Get list bull id from string input
 --Output:
---        +Ds1: animal 17 chars, sex, anim_key, species_code,bull short name
---        +Ds2: invalid bull short name 
+--        +Ds1: invalid bull ID : INT_ID
+--        +Ds2: invalid bull id
 --=================================================================================
 (
 	IN @INPUT_VALUE VARCHAR(10000) 
@@ -23,11 +23,11 @@ BEGIN
 	
 	)WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
-	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpShortNameLists   
+	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpNAABLists   
 	(   
-	    BULL_SHORT_NAME CHAR(20),
-		ANIM_KEY INT,
-		INT_ID CHAR(17), 
+		NAAB10_SEG VARCHAR(60),
+		INT_ID CHAR(17),
+		ANIM_KEY INT, 
 		SEX_CODE char(1),
 		SPECIES_CODE char(1), 
 		ORDER INT
@@ -41,7 +41,7 @@ BEGIN
 	
 	
 	INSERT INTO SESSION.TmpInputs(INPUT_VALUE)
-	SELECT  ITEM FROM table(fn_Split_String (upper(@INPUT_VALUE),@DELIMITER));
+	SELECT  ITEM FROM table(fn_Split_String (@INPUT_VALUE,@DELIMITER));
 	
 	-- Remove duplicate input
 	MERGE INTO SESSION.TmpInputs as A
@@ -59,80 +59,48 @@ BEGIN
 	 ;
 	  
 	     -- Find matching animal id in id_xref_table
-		INSERT INTO SESSION.TmpShortNameLists
+		INSERT INTO SESSION.TmpNAABLists
 		(
-		    BULL_SHORT_NAME,
-			ANIM_KEY,
-			INT_ID, 
+			NAAB10_SEG,
+			INT_ID,
+			ANIM_KEY, 
 			SEX_CODE,
 			SPECIES_CODE,  
 			ORDER
 		)
 		  
-		 SELECT 
-		 ai.BULL_SHORT_NAME,
-		 a.ANIM_KEY, 
-		 a.INT_ID,  
-		 a.SEX_CODE,
-		 a.SPECIES_CODE,
-		 t.ORDER
+		 SELECT
+		 	 ai.NAAB10_SEG, 
+			 a.INT_ID,  
+			 a.ANIM_KEY,
+			 a.SEX_CODE,
+			 a.SPECIES_CODE,
+			 t.ORDER
 		 FROM  SESSION.TmpInputs t
 		 INNER JOIN AI_CODES_TABLE ai
-		 on trim(upper(t.INPUT_VALUE)) = trim(upper(ai.BULL_SHORT_NAME)) 
+		 	on trim(upper(t.INPUT_VALUE)) = upper(ai.NAAB10_SEG)
 		 INNER JOIN ID_XREF_TABLE a
-		 ON ai.ANIM_KEY=a.ANIM_KEY
-		LEFT JOIN ANIM_KEY_HAS_ERROR aHasErr 
-		     on aHasErr.INT_ID = a.INT_ID 
-		     and aHasErr.SPECIES_CODE = a.SPECIES_CODE 
-		 where a.SEX_CODE='M'
-		 and a.SPECIES_CODE='0'
+		 	ON ai.ANIM_KEY=a.ANIM_KEY
+		 	where a.SEX_CODE='M'
+		 	and a.SPECIES_CODE='0'
 		 ORDER BY ORDER
 		 with UR;
-		 
-		  INSERT INTO SESSION.TmpShortNameLists
-		 (
-		 	BULL_SHORT_NAME,
-		    ANIM_KEY,
-			INT_ID, 
-			SEX_CODE,
-			SPECIES_CODE,  
-			ORDER
-		 )
-		  SELECT 
-		  		NULL AS BULL_SHORT_NAME,
-				NULL AS ANIM_KEY, 
-				a.INT_ID,  
-				'U' AS  SEX_CODE,
-				a.SPECIES_CODE,
-				t.ORDER
-		FROM  SESSION.TmpInputs t
-		LEFT JOIN 
-		 		(SELECT DISTINCT 
-				 		INT_ID,
-						BULL_SHORT_NAME
-				FROM SESSION.TmpShortNameLists  
-		 		)validAnimal 
-		 	ON trim(upper(t.INPUT_VALUE))=validAnimal.BULL_SHORT_NAME
-		JOIN ANIM_KEY_HAS_ERROR a
-			ON validAnimal.INT_ID = a.INT_ID
-			WHERE validAnimal.INT_ID IS NULL
-		  
-		 	with UR;		 
+		 		 
 		 
 		 INSERT INTO SESSION.TmpInputValid 
 		 (
 		 INPUT_VALUE
 		 )
-		 SELECT BULL_SHORT_NAME
-		 FROM SESSION.TmpShortNameLists a with UR;
+		 SELECT NAAB10_SEG
+		 FROM SESSION.TmpNAABLists a with UR;
   
 	    -- Remove duplicate output, same animal ID but has different anim key
 		
-		MERGE INTO SESSION.TmpShortNameLists as A
+		MERGE INTO SESSION.TmpNAABLists as A
 		 using
 		 ( 
 			 SELECT INT_ID, MIN(ANIM_KEY) AS MIN_ANIM_KEY -- keep min animal_key
-			 FROM SESSION.TmpShortNameLists t	
+			 FROM SESSION.TmpNAABLists t	
 			 GROUP BY INT_ID with UR
 		 )AS B
 		 ON  A.INT_ID = B.INT_ID and A.ANIM_KEY <> B.MIN_ANIM_KEY
@@ -145,22 +113,16 @@ BEGIN
      	begin
 		 	DECLARE cursor1 CURSOR WITH RETURN for
 		 		
-		 	SELECT  a.INT_ID AS ANIMAL_ID,
-		 	a.BULL_SHORT_NAME,
-		 	a.ANIM_KEY,
-		 	a.SPECIES_CODE,
-		 	a.SEX_CODE,
-		 	case when  aHasErr.INT_ID is not null then '1'
-		      else '0' 
-		    end as HAS_ERROR,
+		 	SELECT
+		 	a.NAAB10_SEG,   
+		 	a.INT_ID AS ANIMAL_ID,
+		 	0 as HAS_ERROR,
 			case when  a.ANIM_KEY is not null then '1'
 			      else '0' 
 			end as IS_LINK_TO_ANIMAL, 
 			row_number()over(order by a.ORDER )  as ORDER
-		 	FROM SESSION.TmpShortNameLists a
-		    LEFT JOIN ANIM_KEY_HAS_ERROR aHasErr 
-		       on aHasErr.INT_ID = a.INT_ID 
-		       and aHasErr.SPECIES_CODE = a.SPECIES_CODE
+		 	FROM SESSION.TmpNAABLists a
+		     
 			ORDER BY ORDER with UR;
 		  
 		 	OPEN cursor1;
@@ -181,4 +143,4 @@ BEGIN
 		 	 
 	   end;
 	    
-END
+END 
