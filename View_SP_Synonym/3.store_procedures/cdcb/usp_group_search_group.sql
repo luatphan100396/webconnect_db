@@ -36,6 +36,7 @@ P1: BEGIN
 		) ugr
 			ON ugr.GROUP_KEY=gr.GROUP_KEY
 			WHERE LOWER(GROUP_SHORT_NAME) LIKE '%'||LOWER(@GROUP_NAME)||'%'
+				OR LOWER(GROUP_NAME) LIKE '%'||LOWER(@GROUP_NAME)||'%'
 		ORDER BY GROUP_NAME
 		LIMIT @row_per_page
 		OFFSET (@page_number-1)*@row_per_page
@@ -61,6 +62,7 @@ P1: BEGIN
 		) ugr
 			ON ugr.GROUP_KEY=gr.GROUP_KEY
 			WHERE LOWER(GROUP_SHORT_NAME) LIKE '%'||LOWER(@GROUP_NAME)||'%'
+				OR LOWER(GROUP_NAME) LIKE '%'||LOWER(@GROUP_NAME)||'%'
 		WITH UR;
 	-- Cursor left open for client application
 	OPEN cursor2;
