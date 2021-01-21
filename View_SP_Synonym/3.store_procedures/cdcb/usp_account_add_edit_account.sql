@@ -490,7 +490,7 @@ P1: BEGIN
 						   and a.CLASS_CODE = s.CLASS_CODE
 						left JOIN SESSION.TmpAffiliatePermission p
 						   on upper(a.source_short_name) = upper(p.source_short_name)
-						   and a.ID = p.ID
+						 --  and a.ID = p.ID
 						group by s.DATA_SOURCE_KEY
 						
 					 )AS B
