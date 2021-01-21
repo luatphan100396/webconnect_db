@@ -7,7 +7,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Common_Group
 --       +Ds1: table with options used for search option, ACCOUNT MANAGEMENT
 --=================================================================================
 (
-	
+	@STATUS_CODE VARCHAR(1)
 )
 	DYNAMIC RESULT SETS 1
 BEGIN
@@ -16,7 +16,12 @@ BEGIN
 	SELECT  
 		trim(GROUP_SHORT_NAME) AS GROUP_SHORT_NAME
 		,trim(GROUP_NAME) AS GROUP_NAME
+		,ref.DESCRIPTION as STATUS
 	FROM  GROUP_TABLE
+	INNER JOIN REFERENCE_TABLE ref
+			ON STATUS_CODE = ref.CODE
+			AND ref.TYPE ='STATUS_CODE'
+			AND (nullif(trim(@STATUS_CODE),'') IS NULL OR LOWER(@STATUS_CODE) = LOWER(STATUS_CODE))
 	WHERE GROUP_SHORT_NAME NOT IN 'ADMIN'
 	AND GROUP_SHORT_NAME NOT IN  'PUBLIC'
 	ORDER BY GROUP_SHORT_NAME

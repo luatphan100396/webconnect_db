@@ -7,6 +7,7 @@ CREATE OR REPLACE PROCEDURE usp_Get_Common_Nominator
 --       +Ds1: table with options used for Management Account
 --=================================================================================
  (
+	 @STATUS_CODE VARCHAR(1)
  )
 	DYNAMIC RESULT SETS 1
 BEGIN
@@ -17,9 +18,13 @@ BEGIN
 			,TRIM(SOURCE_NAME) AS NOMINATOR_NAME
 			,'' as READ_PERMISSION
 			,'' as WRITE_PERMISSION
-		FROM DB2INST1.DATA_SOURCE_TABLE
+			,ref.DESCRIPTION as STATUS
+		FROM DATA_SOURCE_TABLE
+		INNER JOIN REFERENCE_TABLE ref
+			ON STATUS_CODE = ref.CODE
+			AND ref.TYPE ='STATUS_CODE'
+			AND (nullif(trim(@STATUS_CODE),'') IS NULL OR LOWER(@STATUS_CODE) = LOWER(STATUS_CODE))
 		WHERE CLASS_CODE  = 'R'
-		AND STATUS_CODE  = 'A' 
 		ORDER BY SOURCE_NAME
 		WITH UR;
 		OPEN cursor1;
