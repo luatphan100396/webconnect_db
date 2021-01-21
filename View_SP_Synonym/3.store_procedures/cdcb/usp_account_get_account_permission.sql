@@ -68,7 +68,8 @@ where USER_KEY = v_USER_KEY
 		 from SESSION.TMP_AFFILIATIONS uaf
 		 inner join DATA_SOURCE_TABLE d
 		    on uaf.DATA_SOURCE_KEY = d.DATA_SOURCE_KEY
-		    and d.SOURCE_SHORT_NAME in ('CA','WI','NC','UT')
+		    and  d.CLASS_CODE ='D'
+		   -- and d.SOURCE_SHORT_NAME in ('CA','WI','NC','UT')
 		 with ur;
 		     	  
 		  
@@ -87,7 +88,7 @@ where USER_KEY = v_USER_KEY
 	 from SESSION.TMP_AFFILIATIONS  uaf
 	 inner join DATA_SOURCE_TABLE d
 	    on uaf.DATA_SOURCE_KEY = d.DATA_SOURCE_KEY
-	    and d.CLASS_CODE ='L' and d.STATUS_CODE ='A'
+	    and d.CLASS_CODE ='L' --and d.STATUS_CODE ='A'
 	 with ur;
 	     	  
 	  
@@ -105,7 +106,7 @@ where USER_KEY = v_USER_KEY
 	 from SESSION.TMP_AFFILIATIONS uaf
 	 inner join DATA_SOURCE_TABLE d
 	    on uaf.DATA_SOURCE_KEY = d.DATA_SOURCE_KEY
-	    and d.CLASS_CODE ='R' and d.STATUS_CODE ='A'
+	    and d.CLASS_CODE ='R' --and d.STATUS_CODE ='A'
 	 with ur;
 	     	  
 	  

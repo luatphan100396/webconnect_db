@@ -40,7 +40,7 @@ P1: BEGIN
 		
 		
 BEGIN  
-        DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING, NOT FOUND
+        DECLARE EXIT HANDLER FOR SQLEXCEPTION
 	    SET retcode = SQLCODE;
          
         -- Archive data
