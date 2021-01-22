@@ -192,6 +192,7 @@ P1: BEGIN
 			  OR ( lower(trim(uAccTable.USER_NAME)) LIKE '%'||v_SEARCH_BY||'%'
 					OR lower(trim(uInfoTable.EMAIL_ADDR)) LIKE '%'||v_SEARCH_BY||'%'
 					OR lower(trim(uInfoTable.FIRST_NAME)) LIKE '%'||v_SEARCH_BY||'%'
+					OR lower(trim(uInfoTable.LAST_NAME)) LIKE '%'||v_SEARCH_BY||'%'
 					OR lower(trim(uInfoTable.ORGANIZATION)) LIKE '%'||v_SEARCH_BY||'%'
 				)
 		)
