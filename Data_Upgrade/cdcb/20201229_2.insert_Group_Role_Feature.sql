@@ -56,7 +56,7 @@
 ('Queries >> Goat - Herd - Doe Lactation'),
 ('Queries >> Goat - Herd - Test Day'),
 ('Queries >> Cattle - Genotype'),
-('Special Section >>  Get Fee'),
+('Special Section >> Get Fee'),
 ('Special Section >> Nominate Genotype'),
 ('Special Section >> Move Genotype'),
 ('Special Section >> Check fmt1 Record'),
@@ -115,14 +115,14 @@
 	    FROM (
 	    VALUES  
 			('Evaluation Run/Breed'),
-			('Animal Box '),
+			('Animal Box'),
 			('Pedigree Tree'),
-			('NAAB '),
-			('Merit  Table'),
-			('Inbreeding  '),
-			('Evaluation  '),
+			('NAAB'),
+			('Merit Table'),
+			('Inbreeding'),
+			('Evaluation'),
 			('Sire Conception Rate'),
-			('Country Contribution  '),
+			('Country Contribution'),
 			('Type Summary Evaluation'),
 			('Bull History Evaluation')
 	    )t (COMPONENT_NAME),
@@ -228,8 +228,8 @@
          current timestamp as CREATED_TIME,
 		 current timestamp as  MODIFIED_TIME 
 	    FROM (
-	    VALUES ('Herd Information  '),
-				('Get Fee  '),
+	    VALUES ('Herd Information'),
+				('Get Fee'),
 				('Testing Characteristics') 
 
 	    )t (COMPONENT_NAME),
@@ -252,7 +252,7 @@
          current timestamp as CREATED_TIME,
 		 current timestamp as  MODIFIED_TIME 
 	    FROM (
-	    VALUES ('Herd Information  '),
+	    VALUES ('Herd Information'),
 				('Herd Test Information ') 
 
 	    )t (COMPONENT_NAME),
@@ -276,7 +276,7 @@
          current timestamp as CREATED_TIME,
 		 current timestamp as  MODIFIED_TIME 
 	    FROM (
-	    VALUES ('Herd Information  '),
+	    VALUES ('Herd Information'),
 				('List of Cows by Termination Code') 
 
 	    )t (COMPONENT_NAME),
@@ -299,7 +299,7 @@
          current timestamp as CREATED_TIME,
 		 current timestamp as  MODIFIED_TIME 
 	    FROM (
-	    VALUES ('Herd Information  '),
+	    VALUES ('Herd Information'),
 				('Cow Lactation Records')
 
 
@@ -376,9 +376,9 @@ INSERT INTO FEATURE_COMPONENT_TABLE
 	    VALUES ('Evaluation Run/Breed'),
 				('Animal Box '),
 				('Pedigree Tree '),
-				('Merit  Table'),
-				('Inbreeding  '),
-				('Evaluation  '),
+				('Merit Table'),
+				('Inbreeding'),
+				('Evaluation'),
 				('Type Summary Evaluation'),
 				('Buck History Evaluation') 
 	    )t (COMPONENT_NAME),
@@ -481,7 +481,7 @@ INSERT INTO FEATURE_COMPONENT_TABLE
          current timestamp as CREATED_TIME,
 		 current timestamp as  MODIFIED_TIME 
 	    FROM (
-	    VALUES ('Herd Information  '), 
+	    VALUES ('Herd Information'), 
 				('Testing Characteristics') 
 
 	    )t (COMPONENT_NAME),
@@ -505,7 +505,7 @@ INSERT INTO FEATURE_COMPONENT_TABLE
          current timestamp as CREATED_TIME,
 		 current timestamp as  MODIFIED_TIME 
 	    FROM (
-	    VALUES ('Herd Information  '),
+	    VALUES ('Herd Information'),
 				('Error Information ')  
 	    )t (COMPONENT_NAME),
 	    (SELECT FEATURE_KEY
@@ -527,8 +527,8 @@ INSERT INTO FEATURE_COMPONENT_TABLE
          current timestamp as CREATED_TIME,
 		 current timestamp as  MODIFIED_TIME 
 	    FROM (
-	    VALUES ('Herd Information  '),
-				('Doe Lactation Records  ') 
+	    VALUES ('Herd Information'),
+				('Doe Lactation Records') 
 
 	    )t (COMPONENT_NAME),
 	    (SELECT FEATURE_KEY
@@ -550,8 +550,8 @@ INSERT INTO FEATURE_COMPONENT_TABLE
          current timestamp as CREATED_TIME,
 		 current timestamp as  MODIFIED_TIME 
 	    FROM (
-	    VALUES ('Herd Information  '),
-				('Herd Test-Day Information  ') 
+	    VALUES ('Herd Information'),
+				('Herd Test-Day Information') 
 
 	    )t (COMPONENT_NAME),
 	    (SELECT FEATURE_KEY
@@ -601,8 +601,8 @@ INSERT INTO FEATURE_COMPONENT_TABLE
          current timestamp as CREATED_TIME,
 		 current timestamp as  MODIFIED_TIME 
 	    FROM (
-	    VALUES  ('Get Fee by Animal ID (17 bytes)  '),
-				('Get Fee by Herd ID  ') 
+	    VALUES  ('Get Fee by Animal ID (17 bytes)'),
+				('Get Fee by Herd ID') 
 
 	    
 	    )t (COMPONENT_NAME),
@@ -626,7 +626,7 @@ INSERT INTO FEATURE_COMPONENT_TABLE
          current timestamp as CREATED_TIME,
 		 current timestamp as  MODIFIED_TIME 
 	    FROM (
-	    VALUES  ('Create Animal and Nominate  ')  
+	    VALUES  ('Create Animal and Nominate')  
 	    )t (COMPONENT_NAME),
 	    (SELECT FEATURE_KEY
 	     FROM FEATURE_TABLE
