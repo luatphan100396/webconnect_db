@@ -39,7 +39,7 @@ P1: BEGIN
 		    on ur.ROLE_KEY = r.ROLE_KEY
 		WHERE LOWER(ROLE_SHORT_NAME) LIKE '%'||LOWER(@ROLE_NAME)||'%'
 			OR LOWER(ROLE_NAME) LIKE '%'||LOWER(@ROLE_NAME)||'%'
-		ORDER BY ROLE_NAME
+		ORDER BY ROLE_SHORT_NAME
 		LIMIT @row_per_page
 		OFFSET (@page_number-1)*@row_per_page
 		WITH UR;

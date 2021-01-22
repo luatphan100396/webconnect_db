@@ -43,7 +43,7 @@ P1: BEGIN
 					AND (@name IS NULL 
 							OR LOWER(trim(dSTable.SOURCE_SHORT_NAME)) LIKE '%'||LOWER(@name)||'%'
 							OR LOWER(trim(dSTable.SOURCE_NAME)) LIKE '%'||LOWER(@name)||'%')
-		ORDER BY dSTable.SOURCE_NAME ASC
+		ORDER BY dSTable.SOURCE_SHORT_NAME ASC
 		LIMIT @row_per_page
 		OFFSET (@page_number-1)*@row_per_page
 		WITH UR;
@@ -62,4 +62,4 @@ P1: BEGIN
 	
 	OPEN cursor2;
    	END;
-END P1
+END P1 
