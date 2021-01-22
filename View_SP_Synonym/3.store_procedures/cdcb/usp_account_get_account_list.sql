@@ -212,7 +212,7 @@ P1: BEGIN
 	)
 	SELECT
 		t.USER_KEY, 
-		substr(xmlserialize(xmlagg(xmltext (chr(10)||trim(rl.ROLE_SHORT_NAME) ) order by rl.ROLE_SHORT_NAME) as VARCHAR(1000)),2)  as ROLE
+		substr(xmlserialize(xmlagg(xmltext (', '||trim(rl.ROLE_SHORT_NAME) ) order by rl.ROLE_SHORT_NAME) as VARCHAR(1000)),3)  as ROLE
 	FROM SESSION.TmpListUser  t
 	left JOIN USER_ROLE_TABLE uRTable
 			ON t.USER_KEY = uRTable.USER_KEY 
@@ -229,7 +229,7 @@ P1: BEGIN
 	)
 	SELECT
 		t.USER_KEY, 
-		substr(xmlserialize(xmlagg(xmltext (chr(10)||trim(r.SOURCE_SHORT_NAME) ) order by r.SOURCE_SHORT_NAME) as VARCHAR(1000)),2)  as NOMINATOR
+		substr(xmlserialize(xmlagg(xmltext (', '||trim(r.SOURCE_SHORT_NAME) ) order by r.SOURCE_SHORT_NAME) as VARCHAR(1000)),3)  as NOMINATOR
 	FROM SESSION.TmpListUser  t
 	LEFT JOIN USER_AFFILIATION_TABLE ur
 			ON t.USER_KEY = ur.USER_KEY 
@@ -247,7 +247,7 @@ P1: BEGIN
 	)
 	SELECT
 		t.USER_KEY, 
-		substr(xmlserialize(xmlagg(xmltext (chr(10)||trim(r.SOURCE_SHORT_NAME)) order by r.SOURCE_SHORT_NAME) as VARCHAR(1000)),2)  as LAB
+		substr(xmlserialize(xmlagg(xmltext (', '||trim(r.SOURCE_SHORT_NAME)) order by r.SOURCE_SHORT_NAME) as VARCHAR(1000)),3)  as LAB
 	FROM SESSION.TmpListUser  t
 	LEFT JOIN USER_AFFILIATION_TABLE ur
 			ON t.USER_KEY = ur.USER_KEY 
@@ -264,13 +264,13 @@ P1: BEGIN
 	)
 	SELECT
 		t.USER_KEY, 
-		substr(xmlserialize(xmlagg(xmltext (chr(10)||trim(r.SOURCE_SHORT_NAME)) order by r.SOURCE_SHORT_NAME) as VARCHAR(1000)),2)  as LAB
+		substr(xmlserialize(xmlagg(xmltext (', '||trim(r.SOURCE_SHORT_NAME)) order by r.SOURCE_SHORT_NAME) as VARCHAR(1000)),3)  as LAB
 	FROM SESSION.TmpListUser  t
 	LEFT JOIN USER_AFFILIATION_TABLE ur
 			ON t.USER_KEY = ur.USER_KEY 
 	LEFT JOIN DATA_SOURCE_TABLE r 
 		 	ON ur.DATA_SOURCE_KEY = r.DATA_SOURCE_KEY
-	WHERE upper(trim(SOURCE_SHORT_NAME)) in ('CA','WI','NC','UT') 
+	WHERE CLASS_CODE  = 'D'
 		group by t.USER_KEY
 		
 		WITH UR;
