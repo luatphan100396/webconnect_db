@@ -21,7 +21,7 @@ BEGIN
 	    
 	    FROM BREED_TABLE
 	    WHERE BREED_CODE IN ('AY','WW','JE','HO','MS','GU','BS')
-	    ORDER BY  BREED_NAME with UR;
+	    ORDER BY  BREED_CODE with UR;
 	    
 		OPEN cursor2;
 		  

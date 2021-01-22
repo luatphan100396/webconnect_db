@@ -15,7 +15,7 @@ P1: BEGIN
 			COUNTRY_CODE,
 			COUNTRY_NAME
 	FROM COUNTRY_TABLE
-	ORDER BY COUNTRY_NAME
+	ORDER BY COUNTRY_CODE
 	WITH UR;
 
 	-- Cursor left open for client application
