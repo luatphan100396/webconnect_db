@@ -47,7 +47,7 @@ RETURN
 				OR 
 				( UPPER(@SEARCH_BY) ='ROLE' AND FEATURE_NAME IN ('Queries >> Cattle - Herd - Herd Info',
 										                        'Queries >> Cattle - Genotype',
-																'Special Section >>  Get Fee',
+																'Special Section >> Get Fee',
 																'Special Section >> Nominate Genotype',
 																'Special Section >> Move Genotype',
 																'Special Section >> Check fmt1 Record',
