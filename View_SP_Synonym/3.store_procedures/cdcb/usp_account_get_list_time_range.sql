@@ -21,7 +21,7 @@ BEGIN
 	    		KEY, 
 	    		VALUE
 	    FROM (
-	    VALUES ('all_time','All_time')
+	    VALUES ('all_time','All time')
 			    ,('last_hour','Last hour')
 			    ,('last_24hour','last 24 hours')
 			    ,('last_7days','last 7 days')
