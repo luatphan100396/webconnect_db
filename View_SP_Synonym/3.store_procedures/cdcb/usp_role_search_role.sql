@@ -7,7 +7,7 @@ CREATE OR REPLACE PROCEDURE usp_Role_Search_Role
 --       +Ds1: table with list role
 --=================================================================================
 (
-  	IN @ROLE_NAME VARCHAR(100)
+  	IN @ROLE_NAME VARCHAR(200)
   	,IN @page_number int
 	,IN @row_per_page int
 )

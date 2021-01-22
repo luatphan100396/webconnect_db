@@ -7,7 +7,7 @@ CREATE OR REPLACE PROCEDURE usp_Group_Search_Group
 --       +Ds1: table with group list use for Administration
 --=================================================================================
 (
-	IN @GROUP_NAME VARCHAR(100)
+	IN @GROUP_NAME VARCHAR(200)
 	,IN @page_number int
 	,IN @row_per_page int
 )
