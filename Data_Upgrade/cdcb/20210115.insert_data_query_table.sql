@@ -51,3 +51,13 @@ INSERT INTO QUERY_TABLE
  'Get Cow Herd And Cow Control Numbers By ID',
  'CALL usp_Get_Cow_Herd_And_Cow_Control_Numbers_By_ID('''',0,'''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
  );
+
+INSERT INTO QUERY_TABLE
+ ( 
+  QUERY_NAME,
+  CALL_COMMAND 
+ )
+ VALUES(
+ 'Retrieve Parentage Validation Record',
+ 'CALL usp_Get_Animals_Parentage_Ver_Record_By_id_test('''',0,'''','''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
+ );

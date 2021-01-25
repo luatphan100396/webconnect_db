@@ -11,7 +11,10 @@ CREATE OR REPLACE PROCEDURE usp_Get_Animals_Parentage_Ver_Record_By_id_test
 	IN @ANIM_KEY INT, 
 	IN @SPECIES_CODE char(1),
 	IN @SEX_CODE char(1), 
-    IN @EXPORT_TYPE varchar(5) default 'CSV' 
+    IN @EXPORT_TYPE varchar(5) default 'CSV',
+	IN @IS_DATA_EXCHANGE char(1),
+	IN @REQUEST_KEY BIGINT,
+	IN @OPERATION_KEY BIGINT
 )
 dynamic result sets 10
  
@@ -39,7 +42,8 @@ BEGIN
 	    SPECIES_CODE char(1),
 	    SEX_CODE char(1),
 	    INT_ID_18 char(18),
-	    ORDER int
+	    ORDER int,
+		INPUT varchar(128)
 	
 	) WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
@@ -212,22 +216,53 @@ BEGIN
 	) WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
 --	
-   INSERT INTO SESSION.TMP_INPUT
-	(  INT_ID,
-	   ANIM_KEY,
-	   SPECIES_CODE,
-	   SEX_CODE,
-	   INT_ID_18
-   )
-    
-   VALUES (
-	   @INT_ID,
-	   @ANIM_KEY,
-	   @SPECIES_CODE,
-	   @SEX_CODE,
-	   LEFT(@INT_ID,5) ||@SEX_CODE|| RIGHT(@INT_ID,12)
-   ); 
-	
+	IF @IS_DATA_EXCHANGE ='0' THEN
+		INSERT INTO SESSION.TMP_INPUT
+		(  	
+			INT_ID,
+			ANIM_KEY,
+			SPECIES_CODE,
+			SEX_CODE,
+			INT_ID_18
+		)
+			
+		VALUES
+		(
+			@INT_ID,
+			@ANIM_KEY,
+			@SPECIES_CODE,
+			@SEX_CODE,
+			LEFT(@INT_ID,5) ||@SEX_CODE|| RIGHT(@INT_ID,12)
+		);
+	ELSEIF @IS_DATA_EXCHANGE ='1' THEN
+		INSERT INTO SESSION.TMP_INPUT
+		(  
+		   INT_ID,
+		   ANIM_KEY,
+		   SPECIES_CODE,
+		   SEX_CODE,
+		   INT_ID_18,
+		   INPUT
+	   )
+	    SELECT id.INT_ID,
+			   id.ANIM_KEY,
+			   id.SPECIES_CODE,
+			   id.SEX_CODE,
+			   LEFT(id.INT_ID,5) ||id.SEX_CODE|| RIGHT(id.INT_ID,12),
+			   dx.LINE
+	   	FROM
+		(
+			select ROW_KEY, 
+				   LINE 
+			from DATA_EXCHANGE_INPUT_TABLE  
+			where REQUEST_KEY = @REQUEST_KEY
+		)dx
+		INNER JOIN ID_XREF_TABLE id
+				ON id.INT_ID = dx.LINE
+				AND id.SPECIES_CODE ='0' 
+		ORDER BY ROW_KEY
+		;
+	END IF;
 	
 	
   --  Test performance on 2000 animals
@@ -867,28 +902,50 @@ Wrong breed if:
 		ORDER BY t.ORDER 
 	; 
 	 
-	 SET LAST_ROW_ID = (SELECT MAX(ROW_ID) FROM SESSION.TMP_RESULT); 
+	SET LAST_ROW_ID = (SELECT MAX(ROW_ID) FROM SESSION.TMP_RESULT); 
 	 
-	 
+	IF @IS_DATA_EXCHANGE = '0' THEN
 	  
-	IF @EXPORT_TYPE ='CSV' THEN
-	     SET TEMPLATE_NAME 	='ANIM_PARENTAGE_VERIF_RECORD_CSV'; 
-	     call usp_common_export_csv_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,EXPORT_FILE_NAME); 
+		IF @EXPORT_TYPE ='CSV' THEN
+			SET TEMPLATE_NAME 	='ANIM_PARENTAGE_VERIF_RECORD_CSV'; 
+			call usp_common_export_csv_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,EXPORT_FILE_NAME); 
+		
+		ELSEIF @EXPORT_TYPE ='JSON' THEN
+		
+			SET TEMPLATE_NAME 	='ANIM_PARENTAGE_VERIF_RECORD'; 
+			call usp_common_export_json_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,LAST_ROW_ID,EXPORT_FILE_NAME);
+		
+		END IF; 
     
-	ELSEIF @EXPORT_TYPE ='JSON' THEN
-	
-	     SET TEMPLATE_NAME 	='ANIM_PARENTAGE_VERIF_RECORD'; 
-	     call usp_common_export_json_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,LAST_ROW_ID,EXPORT_FILE_NAME);
-	
-	END IF; 
     
-    
-    begin
-        declare c1 cursor with return for
-          select EXPORT_FILE_NAME from sysibm.sysdummy1;
-       
-       open c1;
-    
-    end; 
+		begin
+			declare c1 cursor with return for
+			select EXPORT_FILE_NAME from sysibm.sysdummy1;
+		
+		open c1;
+		
+		end;
+	ELSEIF @IS_DATA_EXCHANGE = '1' THEN
  
+			SET TEMPLATE_NAME 	='ANIM_PARENTAGE_VERIF_RECORD'; 
+			call usp_common_export_json_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,LAST_ROW_ID,EXPORT_FILE_NAME);
+
+			--validate output
+			IF EXPORT_FILE_NAME IS NULL THEN 
+					SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = 'Export failed'; 
+			END IF;
+
+			UPDATE DATA_EXCHANGE_OPERATION_TABLE SET OUTPUT_PATH = EXPORT_FILE_NAME 
+		   	WHERE OPERATION_KEY = @OPERATION_KEY;
+		   
+	       
+			begin
+				declare c1 cursor with return for
+				select EXPORT_FILE_NAME from sysibm.sysdummy1;
+		
+				open c1;
+	
+			end;
+	  
+   END IF;
 END
