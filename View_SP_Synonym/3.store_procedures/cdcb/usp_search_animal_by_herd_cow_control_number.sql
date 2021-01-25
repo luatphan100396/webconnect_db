@@ -84,11 +84,10 @@ BEGIN
 		 JOIN ANIM_KEY_HERD_CTRL_NUM a 
 		     on upper(t.INPUT_VALUE) =  a.HERD_CODE ||' '|| a.CTRL_NUM
 		     and length(replace(trim(a.INT_ID),' ',''))=17
-		 LEFT JOIN ANIM_KEY_HAS_ERROR aHasErr 
-		     on aHasErr.INT_ID = a.INT_ID 
-		     and aHasErr.SPECIES_CODE = a.SPECIES_CODE 
-		     and ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
-		     OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1'))
+		 
+		  WHERE  ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
+		        OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1')
+			 )
 		 with UR; 
 		 
 		 

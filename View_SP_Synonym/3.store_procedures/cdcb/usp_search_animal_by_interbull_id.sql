@@ -1,8 +1,8 @@
-CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Animal_ID_17_Bytes 
+CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Interbull_ID 
 --=================================================================================================
 --Author: Nghi Ta
 --Created Date: 2020-05-12
---Description: Get list INT_ID from string input
+--Description: Get list INT_ID from Interbull list
 --Output:
 --        +Ds1: Table with animal id, animal key, species code, sex code, herd code, ctrl num, has error, 
 --              is linked to animal 
@@ -25,12 +25,23 @@ BEGIN
 	
 	)WITH REPLACE ON COMMIT PRESERVE ROWS;
 	
+	 
+	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpInputsParseToIntID
+	(	
+		INT_ID CHAR(17),
+		SEX_CODE CHAR(1),
+		INPUT_VALUE VARCHAR(128),
+		ORDER INT
+      
+	)WITH REPLACE ON COMMIT PRESERVE ROWS;
+	
 	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpIntIDChar17Lists   
 	(
 		ANIM_KEY INT,
 		INT_ID CHAR(17), 
 		SEX_CODE char(1),
 		SPECIES_CODE char(1), 
+		INTERBULL_ID char(19),
 		ORDER INT
 	) WITH REPLACE  ON COMMIT PRESERVE ROWS;
   
@@ -59,6 +70,32 @@ BEGIN
 	 DELETE
 	 ;
 	  
+	   
+	
+	INSERT INTO SESSION.TmpInputsParseToIntID
+	(
+	   INT_ID,
+	   SEX_CODE,
+	   INPUT_VALUE,
+	   ORDER
+	)
+	SELECT 
+	       upper(b.BREED_CODE || substring(t.INPUT_VALUE,4,3)|| substring(t.INPUT_VALUE,8,12)) as INT_ID, 
+		   upper(substring(t.INPUT_VALUE,7,1)) AS SEX_CODE,
+		   t.INPUT_VALUE,
+		   ORDER
+	FROM
+	(
+	   SELECT *
+	   FROM  SESSION.TmpInputs t 
+	   WHERE LENGTH(INPUT_VALUE) =19
+	)t
+	INNER JOIN   BREED_TABLE b
+	  on substring(t.INPUT_VALUE,1,3) = B.BREED_3CHAR
+	
+	  ;
+		 
+	  
 	     -- Find matching animal id in id_xref_table
 		INSERT INTO SESSION.TmpIntIDChar17Lists
 		(
@@ -66,6 +103,7 @@ BEGIN
 			INT_ID, 
 			SEX_CODE,
 			SPECIES_CODE,  
+			INTERBULL_ID,
 			ORDER
 		)
 		  
@@ -74,16 +112,16 @@ BEGIN
 		 a.INT_ID,  
 		 a.SEX_CODE,
 		 a.SPECIES_CODE,
+		 t.INPUT_VALUE as INTERBULL_ID,
 		 t.ORDER
-		 FROM  SESSION.TmpInputs t
-		 JOIN ID_XREF_TABLE a 
-		    on upper(t.INPUT_VALUE) = a.INT_ID  
-		 WHERE length(trim(t.INPUT_VALUE))=17
-		     and ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
-		         OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1')
-		        )
+		 FROM SESSION.TmpInputsParseToIntID t  
+		 INNER JOIN ID_XREF_TABLE a
+		 	 ON t.INT_ID  =  a.INT_ID 
+		 	 and t.SEX_CODE  =  a.SEX_CODE  
+		 WHERE (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
 		 with UR;
 		 
+		 -- Find matching animal id in error data
 		 -- Find matching animal id in error data
 		 INSERT INTO SESSION.TmpIntIDChar17Lists
 		 (
@@ -91,6 +129,7 @@ BEGIN
 			INT_ID, 
 			SEX_CODE,
 			SPECIES_CODE,  
+			INTERBULL_ID,
 			ORDER
 		 )
 		  SELECT 
@@ -98,28 +137,27 @@ BEGIN
 		 a.INT_ID,  
 		 'U' AS  SEX_CODE,
 		 a.SPECIES_CODE,
+		 t.INPUT_VALUE as INTERBULL_ID,
 		 t.ORDER
-		 FROM  SESSION.TmpInputs t
-		 JOIN ANIM_KEY_HAS_ERROR a on upper(t.INPUT_VALUE) = a.INT_ID 
+		 FROM  SESSION.TmpInputsParseToIntID t
+		 JOIN ANIM_KEY_HAS_ERROR a 
+		     on t.INT_ID = a.INT_ID 
+		     and t.SEX_CODE  =  a.SEX_CODE  
 		 LEFT JOIN 
 		 (SELECT DISTINCT INT_ID
 		  FROM SESSION.TmpIntIDChar17Lists  
 		 )validAnimal on a.INT_ID = validAnimal.INT_ID
-		 WHERE validAnimal.INT_ID IS NULL
-		 and length(trim(t.INPUT_VALUE))=17
-		    and ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
-		         OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1')
+		 WHERE validAnimal.INT_ID IS NULL 
+		    and ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0') 
 		        )
 		  
 		 with UR;
-		 
-		 
 		 
 		 INSERT INTO SESSION.TmpInputValid 
 		 (
 		 INPUT_VALUE
 		 )
-		 SELECT INT_ID
+		 SELECT INTERBULL_ID
 		 FROM SESSION.TmpIntIDChar17Lists a with UR;
   
 	    -- Remove duplicate output, same animal ID but has different anim key
@@ -176,5 +214,7 @@ BEGIN
 		 	OPEN cursor1_1;
 		 	 
 	   end;
+	    
+	   
 	    
 END

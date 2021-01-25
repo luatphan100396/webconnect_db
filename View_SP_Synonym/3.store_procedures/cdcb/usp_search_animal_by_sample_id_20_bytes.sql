@@ -74,7 +74,7 @@ BEGIN
 			ORDER
 		)
 		  
-		 SELECT
+		 SELECT DISTINCT
 		 	 a.SAMPLE_ID, 
 			 xref.ANIM_KEY, 
 			 xref.INT_ID,  
@@ -84,10 +84,11 @@ BEGIN
 		 FROM  SESSION.TmpInputs t
 		 JOIN GENOTYPE_STATUS_TABLE a
 		 	on upper(t.INPUT_VALUE) = a.SAMPLE_ID
-		 LEFT JOIN ID_XREF_TABLE xref 
+		 INNER JOIN ID_XREF_TABLE xref 
 		 	on xref.ANIM_KEY = a.ANIM_KEY 
-			AND ( (@SEARCH_FOR='CATTLE' AND xref.SPECIES_CODE ='0')
-			OR (@SEARCH_FOR='GOAT' AND xref.SPECIES_CODE ='1'))
+		 WHERE  ( (@SEARCH_FOR='CATTLE' AND xref.SPECIES_CODE ='0')
+			   
+			   )
 		 with UR;
 		 INSERT INTO SESSION.TmpInputValid 
 		 (

@@ -79,51 +79,17 @@ BEGIN
 		 t.ORDER
 		 FROM  SESSION.TmpInputs t
 		 INNER JOIN AI_CODES_TABLE ai
-		 on trim(upper(t.INPUT_VALUE)) = trim(upper(ai.BULL_SHORT_NAME)) 
+		    on trim(upper(t.INPUT_VALUE)) = trim(upper(ai.BULL_SHORT_NAME)) 
 		 INNER JOIN ID_XREF_TABLE a
-		 ON ai.ANIM_KEY=a.ANIM_KEY
-		LEFT JOIN ANIM_KEY_HAS_ERROR aHasErr 
-		     on aHasErr.INT_ID = a.INT_ID 
-		     and aHasErr.SPECIES_CODE = a.SPECIES_CODE 
+		    ON ai.ANIM_KEY=a.ANIM_KEY
+		 
 		 where a.SEX_CODE='M'
 		 and ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
 		    OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1')
 		        )
 		 ORDER BY ORDER
 		 with UR;
-		 
-		  INSERT INTO SESSION.TmpShortNameLists
-		 (
-		 	BULL_SHORT_NAME,
-		    ANIM_KEY,
-			INT_ID, 
-			SEX_CODE,
-			SPECIES_CODE,  
-			ORDER
-		 )
-		  SELECT 
-		  		NULL AS BULL_SHORT_NAME,
-				NULL AS ANIM_KEY, 
-				a.INT_ID,  
-				'U' AS  SEX_CODE,
-				a.SPECIES_CODE,
-				t.ORDER
-		FROM  SESSION.TmpInputs t
-		LEFT JOIN 
-		 		(SELECT DISTINCT 
-				 		INT_ID,
-						BULL_SHORT_NAME
-				FROM SESSION.TmpShortNameLists  
-		 		)validAnimal 
-		 	ON trim(upper(t.INPUT_VALUE))=validAnimal.BULL_SHORT_NAME
-		JOIN ANIM_KEY_HAS_ERROR a
-			ON validAnimal.INT_ID = a.INT_ID
-			WHERE validAnimal.INT_ID IS NULL
-			     AND ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
-		         OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1')
-		        )
-		  
-		 	with UR;		 
+		  	 
 		 
 		 INSERT INTO SESSION.TmpInputValid 
 		 (

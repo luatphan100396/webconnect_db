@@ -27,11 +27,11 @@ BEGIN
 	
 	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpIntIDChar12Lists   
 	(
-		ANIM_ID_NUM char(12),
 		ANIM_KEY INT,
 		INT_ID CHAR(17), 
 		SEX_CODE char(1),
 		SPECIES_CODE char(1), 
+		ANIM_ID_NUM char(12),
 		ORDER INT
 	) WITH REPLACE  ON COMMIT PRESERVE ROWS;
   
@@ -62,62 +62,75 @@ BEGIN
 	     -- Find matching animal id in id_xref_table
 		INSERT INTO SESSION.TmpIntIDChar12Lists
 		(
-			ANIM_ID_NUM,
+			
 			ANIM_KEY,
 			INT_ID, 
 			SEX_CODE,
-			SPECIES_CODE,  
+			SPECIES_CODE, 
+			ANIM_ID_NUM, 
 			ORDER
 		)
 		  
-		 SELECT 
-				a.ANIM_ID_NUM,
+		 SELECT  
 				a.ANIM_KEY, 
 				a.INT_ID,  
 				a.SEX_CODE,
 				a.SPECIES_CODE,
+				a.ANIM_ID_NUM,
 				t.ORDER
-		 FROM  SESSION.TmpInputs t
-		 	JOIN ID_XREF_TABLE a 
-			 	ON right(repeat('0',12)||upper(t.INPUT_VALUE),12) = a.ANIM_ID_NUM
-			 	WHERE ((@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
-			    	OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1'))
+		 FROM
+		 (
+		   select * 
+		   from SESSION.TmpInputs t
+		   where length(t.INPUT_VALUE)<=12
+		 )t  
+		 JOIN ID_XREF_TABLE a 
+			 ON right(repeat('0',12)||upper(t.INPUT_VALUE),12) = a.ANIM_ID_NUM
+	 	 WHERE (
+		 	     (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
+		    	 OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1')
+	    	  ) 
 		 		with UR;
 		 
 		 -- Find matching animal id in error data
 		 INSERT INTO SESSION.TmpIntIDChar12Lists
 		 (
-		 	ANIM_ID_NUM,
+		 	
 		    ANIM_KEY,
 			INT_ID, 
 			SEX_CODE,
 			SPECIES_CODE,  
+			ANIM_ID_NUM,
 			ORDER
 		 )
-		  SELECT 
-		  		NULL AS ANIM_ID_NUM,
+		  SELECT  
 				NULL AS ANIM_KEY, 
 				a.INT_ID,  
 				'U' AS  SEX_CODE,
 				a.SPECIES_CODE,
+				t.INPUT_VALUE_12_CHAR AS ANIM_ID_NUM,
 				t.ORDER
-		FROM  SESSION.TmpInputs t
+		FROM   
+		(
+		   select right(repeat('0',12)||upper(t.INPUT_VALUE),12) as INPUT_VALUE_12_CHAR,
+		          t.INPUT_VALUE,
+		          t.ORDER
+		   from SESSION.TmpInputs t
+		   where length(t.INPUT_VALUE)<=12
+		)t
+		JOIN ANIM_KEY_HAS_ERROR a 
+			ON t.INPUT_VALUE_12_CHAR = right(a.INT_ID,12) 
+			AND ((@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
+			     OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1')
+			   )
 		LEFT JOIN 
-		 		(SELECT DISTINCT 
-				 		INT_ID,
-						ANIM_ID_NUM
-				FROM SESSION.TmpIntIDChar12Lists  
+		 		(SELECT DISTINCT ANIM_ID_NUM
+				 FROM SESSION.TmpIntIDChar12Lists  
 		 		)validAnimal 
-		 	ON right(repeat('0',12)||upper(t.INPUT_VALUE),12) = validAnimal.ANIM_ID_NUM
-		JOIN ANIM_KEY_HAS_ERROR a
-			ON validAnimal.INT_ID = a.INT_ID
-			AND ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
-			    OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1'))
-			WHERE ((@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
-			    	OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1'))
-				AND validAnimal.INT_ID IS NULL
-		  
-		 	with UR;
+		    ON t.INPUT_VALUE_12_CHAR = validAnimal.ANIM_ID_NUM 
+		 
+	    WHERE validAnimal.ANIM_ID_NUM IS NULL  
+		with UR;
 		 
 		 
 		 
@@ -179,7 +192,7 @@ BEGIN
 		 	FROM SESSION.TmpInputs i
 		 	LEFT JOIN SESSION.TmpInputValid valid
 		 		ON right(repeat('0',12)||upper(i.INPUT_VALUE),12) = valid.INPUT_VALUE
-		 		WHERE valid.INPUT_VALUE IS NULL
+		 	WHERE valid.INPUT_VALUE IS NULL
 		 		AND i.INPUT_VALUE <> '' with UR;
 		 		OPEN cursor1_1;
 		 	 
