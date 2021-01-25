@@ -8,6 +8,7 @@ CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Short_Name
 --        +Ds2: invalid bull short name 
 --=================================================================================
 (
+    IN @SEARCH_FOR VARCHAR(10), -- GOAT/CATTLE
 	IN @INPUT_VALUE VARCHAR(10000) 
 	,@DELIMITER VARCHAR(1) default ','
 )
@@ -85,7 +86,9 @@ BEGIN
 		     on aHasErr.INT_ID = a.INT_ID 
 		     and aHasErr.SPECIES_CODE = a.SPECIES_CODE 
 		 where a.SEX_CODE='M'
-		 and a.SPECIES_CODE='0'
+		 and ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
+		    OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1')
+		        )
 		 ORDER BY ORDER
 		 with UR;
 		 
@@ -116,6 +119,9 @@ BEGIN
 		JOIN ANIM_KEY_HAS_ERROR a
 			ON validAnimal.INT_ID = a.INT_ID
 			WHERE validAnimal.INT_ID IS NULL
+			     AND ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
+		         OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1')
+		        )
 		  
 		 	with UR;		 
 		 
@@ -181,4 +187,4 @@ BEGIN
 		 	 
 	   end;
 	    
-END
+END 
