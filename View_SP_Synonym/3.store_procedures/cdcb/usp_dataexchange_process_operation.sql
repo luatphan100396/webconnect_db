@@ -65,10 +65,7 @@ P1: BEGIN
 		    SET query = replace(query,'@REQUEST_KEY',cast(v_REQUEST_KEY as varchar(20))); 
 		    SET query = replace(query,'@OPERATION_KEY',cast(@OPERATION_KEY as varchar(20))); 
 		    EXECUTE IMMEDIATE query;
-		    
-		    
-		    UPDATE DATA_EXCHANGE_OPERATION_TABLE SET STATUS = 'Completed', END_TIME = current timestamp
-			WHERE OPERATION_KEY = @OPERATION_KEY;
+		     
 			
 			--COMMIT;
     
@@ -91,7 +88,10 @@ P1: BEGIN
 					END;
 				 
 			 ELSE 
+			 
 				COMMIT ; 
+				UPDATE DATA_EXCHANGE_OPERATION_TABLE SET STATUS = 'Completed', END_TIME = current timestamp
+			    WHERE OPERATION_KEY = @OPERATION_KEY;
 				 
 					BEGIN
 						DECLARE cursor1 CURSOR WITH RETURN for
