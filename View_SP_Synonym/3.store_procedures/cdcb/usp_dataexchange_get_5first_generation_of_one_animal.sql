@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE usp_Dataexchange_Get_5first_Generation_Of_One_Animal
+CREATE OR REPLACE PROCEDURE usp_Get_5first_Generation_Pedigrees
 --=================================================================
 --Author: Tuyen Nguyen
 --Created Date: 2021-01-21
