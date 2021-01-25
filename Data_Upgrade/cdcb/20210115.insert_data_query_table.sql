@@ -52,6 +52,8 @@ INSERT INTO QUERY_TABLE
  'CALL usp_Get_Cow_Herd_And_Cow_Control_Numbers_By_ID('''',0,'''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
  );
 
+
+--25/01/2021 insert query table for data exchange retrieve parentage validation
 INSERT INTO QUERY_TABLE
  ( 
   QUERY_NAME,
@@ -59,5 +61,5 @@ INSERT INTO QUERY_TABLE
  )
  VALUES(
  'Retrieve Parentage Validation Record',
- 'CALL usp_Get_Animals_Parentage_Ver_Record_By_id_test('''',0,'''','''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
+ 'CALL usp_Get_Animals_Parentage_Ver_Record_By_id('''',0,'''','''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
  );

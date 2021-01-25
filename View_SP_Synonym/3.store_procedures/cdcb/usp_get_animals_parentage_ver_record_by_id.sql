@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE usp_Get_Animals_Parentage_Ver_Record_By_id_test
+CREATE OR REPLACE PROCEDURE usp_Get_Animals_Parentage_Ver_Record_By_id
 --===================================================================================================
 --Author: Trong Le
 --Created Date: 2020-10-13
