@@ -1,7 +1,7 @@
 CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Herd_Cow_Control_Number
 --=================================================================================================
---Author: Nghi Ta
---Created Date: 2020-05-12
+--Author: Linh Pham
+--Created Date: 2020-01-25
 --Description: Get list INT_ID from string input
 --Output:
 --        +Ds1: Table with animal id, animal key, species code, sex code, herd code, ctrl num, has error, 
@@ -9,7 +9,8 @@ CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Herd_Cow_Control_Number
 --        +Ds2: Invalid item 
 --=================================================================================================
 (
-	IN @INPUT_VALUE VARCHAR(10000) 
+	IN @SEARCH_FOR VARCHAR(10) -- GOAT/CATTLE
+	,IN @INPUT_VALUE VARCHAR(10000) 
 	,@DELIMITER VARCHAR(1) default ','
 )
 	DYNAMIC RESULT SETS 3
@@ -86,6 +87,8 @@ BEGIN
 		 LEFT JOIN ANIM_KEY_HAS_ERROR aHasErr 
 		     on aHasErr.INT_ID = a.INT_ID 
 		     and aHasErr.SPECIES_CODE = a.SPECIES_CODE 
+		     and ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
+		     OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1'))
 		 with UR; 
 		 
 		 
@@ -142,4 +145,3 @@ BEGIN
 	   end;
 	    
 END
-
