@@ -9,7 +9,8 @@ CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Animal_ID_18_Bytes
 --        +Ds2: Animal which has no information returned 
 --=================================================================================================
 (
-	IN @INPUT_VALUE VARCHAR(10000) 
+	IN @SEARCH_FOR VARCHAR(10) -- GOAT/CATTLE
+	,IN @INPUT_VALUE VARCHAR(10000) 
 	,@DELIMITER VARCHAR(1) default ','
 )
 	DYNAMIC RESULT SETS 3
@@ -88,6 +89,8 @@ BEGIN
 				t.ORDER
 		 FROM  SESSION.TmpInputs t
 		 JOIN ID_XREF_TABLE a on upper(t.INPUT_VALUE) = a.BREED_CODE||a.COUNTRY_CODE||a.SEX_CODE ||a.ANIM_ID_NUM
+		 						and ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
+		         				OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1'))
 		 	with UR;
 		 
 		 -- Find matching animal id in error data
@@ -124,6 +127,8 @@ BEGIN
 		 	ON t.INPUT_VALUE =validAnimal.BREED_CODE||validAnimal.COUNTRY_CODE||validAnimal.SEX_CODE ||validAnimal.ANIM_ID_NUM
 		JOIN ANIM_KEY_HAS_ERROR a
 			ON validAnimal.INT_ID = a.INT_ID
+			and ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
+		         OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1'))
 			WHERE validAnimal.INT_ID IS NULL
 		 	with UR;
  

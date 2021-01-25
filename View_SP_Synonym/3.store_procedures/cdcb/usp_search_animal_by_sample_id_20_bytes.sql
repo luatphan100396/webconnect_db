@@ -9,7 +9,8 @@ CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Sample_ID_20_Bytes
 --        +Ds2: Animal which has no information returned 
 --========================================================================
 (
-	IN @INPUT_VALUE VARCHAR(10000) 
+	IN @SEARCH_FOR VARCHAR(10) -- GOAT/CATTLE
+	,IN @INPUT_VALUE VARCHAR(10000) 
 	,@DELIMITER VARCHAR(1) default ','
 )
 	DYNAMIC RESULT SETS 3
@@ -82,12 +83,12 @@ BEGIN
 		 t.ORDER
 		 FROM  SESSION.TmpInputs t
 		 JOIN GENOTYPE_STATUS_TABLE a
-		 on upper(t.INPUT_VALUE) = a.SAMPLE_ID
+		 	on upper(t.INPUT_VALUE) = a.SAMPLE_ID
 		 LEFT JOIN ID_XREF_TABLE xref 
-		 on xref.ANIM_KEY = a.ANIM_KEY 
+		 	on xref.ANIM_KEY = a.ANIM_KEY 
+			AND ( (@SEARCH_FOR='CATTLE' AND xref.SPECIES_CODE ='0')
+			OR (@SEARCH_FOR='GOAT' AND xref.SPECIES_CODE ='1'))
 		 with UR;
-		 
-		 
 		 INSERT INTO SESSION.TmpInputValid 
 		 (
 		 INPUT_VALUE
@@ -103,7 +104,9 @@ BEGIN
 			 FROM SESSION.TmpIntIDChar20Lists t	
 			 GROUP BY INT_ID with UR
 		 )AS B
-		 ON  A.INT_ID = B.INT_ID and A.ANIM_KEY <> B.MIN_ANIM_KEY
+		 	ON  A.INT_ID = B.INT_ID 
+		 	and A.ANIM_KEY <> B.MIN_ANIM_KEY
+		 	
 		 WHEN MATCHED THEN
 		 DELETE
 		 ;
