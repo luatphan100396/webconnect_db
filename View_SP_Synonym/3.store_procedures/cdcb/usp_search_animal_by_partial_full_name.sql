@@ -8,6 +8,7 @@ CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Partial_Full_Name
 --        +Ds2: invalid full name 
 --=================================================================================
 (
+    IN @SEARCH_FOR VARCHAR(10), -- GOAT/CATTLE
 	IN @INPUT_VALUE VARCHAR(10000) 
 	,@DELIMITER VARCHAR(1) default ','
 )
@@ -84,6 +85,9 @@ BEGIN
 		 ON an.INT_ID=a.INT_ID
 		 AND a.SEX_CODE=an.SEX_CODE
 		 AND a.SPECIES_CODE=an.SPECIES_CODE
+		 where ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
+		         OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1')
+		        )
 		 ORDER BY ORDER
 		 with UR;
 		 	
@@ -114,6 +118,9 @@ BEGIN
 		JOIN ANIM_KEY_HAS_ERROR a
 			ON validAnimal.INT_ID = a.INT_ID
 			WHERE validAnimal.INT_ID IS NULL
+			and ( (@SEARCH_FOR='CATTLE' AND a.SPECIES_CODE ='0')
+		         OR (@SEARCH_FOR='GOAT' AND a.SPECIES_CODE ='1')
+		        )
 		  
 		 	with UR;	 
 		 
@@ -179,4 +186,4 @@ BEGIN
 		 	 
 	   end;
 	    
-END 
+END
