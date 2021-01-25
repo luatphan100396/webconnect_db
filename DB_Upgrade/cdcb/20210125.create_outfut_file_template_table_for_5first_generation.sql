@@ -25,5 +25,5 @@ VALUES
      }',
 'Animal_formatted_5first_generation',
 CURRENT DATE 
-)
+)   
 ;
