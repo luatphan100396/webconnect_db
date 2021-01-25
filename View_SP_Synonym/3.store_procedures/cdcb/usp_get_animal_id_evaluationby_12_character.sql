@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE usp_DataExchange_Get_Animal_By_12_Character 
+CREATE OR REPLACE PROCEDURE usp_Get_Animal_ID_Evaluation_By_12_Character 
 --=================================================================================================
 --Author: Tuyen Nguyen
 --Created Date: 2020-01-19
@@ -165,18 +165,9 @@ BEGIN
 				AND t.SEX_CODE = id.SEX_CODE
 				AND t.SPECIES_CODE = id.SPECIES_CODE
 				AND t.INT_ID = id.INT_ID 
-			LEFT JOIN SESSION.TmpAnimalLists_Alias pre_id
-			   	ON  t.ANIM_KEY = pre_id.ANIM_KEY
-				AND t.SEX_CODE = pre_id.SEX_CODE
-				AND t.SPECIES_CODE = pre_id.SPECIES_CODE
-				AND pre_id.PREFERRED_CODE='1' 
 			LEFT JOIN PEDIGREE_TABLE ped
 			    ON ped.ANIM_KEY = t.ANIM_KEY
 			    AND  ped.SPECIES_CODE = t.SPECIES_CODE
-			LEFT JOIN ID_XREF_TABLE sire
-				ON ped.SIRE_KEY= sire.ANIM_KEY
-				AND ped.SPECIES_CODE = sire.SPECIES_CODE
-				AND sire.PREFERRED_CODE='1'
 			LEFT JOIN ID_XREF_TABLE dam
 				ON ped.DAM_KEY= dam.ANIM_KEY
 				AND ped.SPECIES_CODE = dam.SPECIES_CODE
@@ -211,7 +202,7 @@ BEGIN
    ELSEIF @IS_DATA_EXCHANGE ='1' THEN
 	
 		   SET LAST_ROW_ID = (SELECT MAX(ROW_ID) FROM SESSION.TMP_RESULT); 
-           SET TEMPLATE_NAME 	='ANIM_FORMATTED_12_CHARACTER'; 
+           SET TEMPLATE_NAME 	='ANIM_FORMATTED_ID_EVALUATION_12_CHARACTER'; 
 	       call usp_common_export_json_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,LAST_ROW_ID,EXPORT_FILE_NAME);
 	       
 	       --validate output
