@@ -6,7 +6,7 @@
  )
  VALUES(
  'Get Animal Formatted Pedigree Information',
- 'CALL usp_DataExchange_Get_Animal_Formatted_Pedigree_Info('''',0,'''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
+ 'CALL usp_Get_Animal_Formatted_Pedigree_Info('''',0,'''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
  );
   
 
@@ -62,4 +62,14 @@ INSERT INTO QUERY_TABLE
  VALUES(
  'Retrieve Parentage Validation Record',
  'CALL usp_Get_Animals_Parentage_Ver_Record_By_id('''',0,'''','''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
+ );
+--AUTHOR: Linh Pham 26/01/2021 Get Cow Key And ID By Herd Cow Control Number
+ INSERT INTO QUERY_TABLE
+ ( 
+  QUERY_NAME,
+  CALL_COMMAND 
+ )
+ VALUES(
+ 'Get Cow Key And ID By Herd Cow Control Number',
+ 'CALL usp_Search_Animal_By_Herd_Cow_Control_Number(''CATTLE'','''','','',''1'',@REQUEST_KEY,@OPERATION_KEY)'
  );
