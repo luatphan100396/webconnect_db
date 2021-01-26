@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE usp_DataExchange_Get_Animal_Formatted_Pedigree_Info
+CREATE OR REPLACE PROCEDURE usp_Get_Animal_Formatted_Pedigree_Info
 --======================================================
 --Author: Nghi Ta
 --Created Date: 2020-12-14
@@ -25,6 +25,9 @@ P1: BEGIN
 	DECLARE TEMPLATE_NAME			VARCHAR(200) ; 
 	DECLARE LAST_ROW_ID 		    INT;
 	
+	DECLARE SQLCODE INTEGER DEFAULT 0; 
+    DECLARE retcode_Operation INTEGER DEFAULT 0;
+    DECLARE err_message varchar(300);
 	
 	--DECLARE TEMPORARY TABLE
         DECLARE GLOBAL TEMPORARY TABLE SESSION.TMP_INPUT
@@ -258,7 +261,13 @@ P1: BEGIN
 	
 		   SET LAST_ROW_ID = (SELECT MAX(ROW_ID) FROM SESSION.TMP_RESULT); 
            SET TEMPLATE_NAME 	='ANIM_FORMATTED_PEDIGREE'; 
-	       call usp_common_export_json_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,LAST_ROW_ID,EXPORT_FILE_NAME);
+	       begin
+			     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+			     SET retcode_Operation = SQLCODE;
+			        
+		         call usp_common_export_json_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,LAST_ROW_ID,EXPORT_FILE_NAME);
+		     
+		     end;
 	       
 	       --validate output
 	       IF  EXPORT_FILE_NAME IS NULL THEN 
