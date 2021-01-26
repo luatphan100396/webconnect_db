@@ -8,6 +8,17 @@
  'Get Animal Formatted Pedigree Information',
  'CALL usp_Get_Animal_Formatted_Pedigree_Info('''',0,'''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
  );
+
+--AUTHOR: TRI DO 26/01/2021 insert query table for data exchange get animal clonal family by id
+ INSERT INTO QUERY_TABLE
+ ( 
+  QUERY_NAME,
+  CALL_COMMAND 
+ )
+ VALUES(
+ 'Get Animal Clonal Family By Id',
+ 'CALL usp_Get_Animal_Clonal_Family_By_ID('''',0,'''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
+ );
   
 
 INSERT INTO QUERY_TABLE
