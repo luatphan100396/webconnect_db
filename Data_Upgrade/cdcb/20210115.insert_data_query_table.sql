@@ -10,15 +10,16 @@
  );
   
 
-INSERT INTO QUERY_TABLE
+  INSERT INTO QUERY_TABLE
  ( 
   QUERY_NAME,
   CALL_COMMAND 
  )
  VALUES(
  'Get Animal Information by Naab Code',
- 'CALL usp_Get_Animal_By_Naab_Code(''CATTLE'','''','','',''1'',@REQUEST_KEY,@OPERATION_KEY)'
+ 'CALL usp_Search_Animal_By_Naab_Code(''CATTLE'','''','','',''1'',@REQUEST_KEY,@OPERATION_KEY)'
  );
+ 
 
   INSERT INTO QUERY_TABLE
  ( 
