@@ -10,7 +10,7 @@
  );
   
 
-  INSERT INTO QUERY_TABLE
+INSERT INTO QUERY_TABLE
  ( 
   QUERY_NAME,
   CALL_COMMAND 
@@ -19,7 +19,6 @@
  'Get Animal Information by Naab Code',
  'CALL usp_Search_Animal_By_Naab_Code(''CATTLE'','''','','',''1'',@REQUEST_KEY,@OPERATION_KEY)'
  );
- 
 
   INSERT INTO QUERY_TABLE
  ( 
@@ -41,3 +40,26 @@ INSERT INTO QUERY_TABLE
  'CALL usp_Get_Animal_ID_Evaluation_By_12_Character('''',0,'''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
  );
   
+
+  ---Author: Linh Pham 26/01/2021
+  INSERT INTO QUERY_TABLE
+ ( 
+  QUERY_NAME,
+  CALL_COMMAND 
+ )
+ VALUES(
+ 'Get Cow Herd And Cow Control Numbers By ID',
+ 'CALL usp_Get_Cow_Herd_And_Cow_Control_Numbers_By_ID('''',0,'''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
+ );
+
+
+--25/01/2021 insert query table for data exchange retrieve parentage validation
+INSERT INTO QUERY_TABLE
+ ( 
+  QUERY_NAME,
+  CALL_COMMAND 
+ )
+ VALUES(
+ 'Retrieve Parentage Validation Record',
+ 'CALL usp_Get_Animals_Parentage_Ver_Record_By_id('''',0,'''','''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
+ );
