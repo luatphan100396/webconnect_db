@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE usp_Get_Animal_By_Naab_Code
+CREATE OR REPLACE PROCEDURE usp_Search_Animal_By_Naab_Code
 --================================================================================
 --Author: Tuyen Nguyen
 --Created Date: 2021-01-25
