@@ -134,7 +134,8 @@
    from group_table 
  )g
  where (COMPONENT_NAME not in ('Pedigree Tree','Lactation Information - Test Day')   ) -- ALL Group 
- or (COMPONENT_NAME in ('Pedigree Tree','Lactation Information - Test Day')  and group_short_name <>'PUBLIC') --Exclude Public
+ or (COMPONENT_NAME in ('Pedigree Tree')  and group_short_name not in('PUBLIC')) --Exclude Public
+ or (COMPONENT_NAME in ('Lactation Information - Test Day')  and group_short_name not in('PUBLIC','STUD')) --Exclude Public
  ;
    
   

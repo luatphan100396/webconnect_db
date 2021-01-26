@@ -134,7 +134,7 @@ BEGIN
 		 XML_BOOKS.Value		 
 		FROM  
 		XMLTABLE(
-		'$doc/Inputs/Item' 
+		'$doc/inputs/item' 
 		PASSING input_xml AS "doc"
 		COLUMNS 
 		 
@@ -153,7 +153,7 @@ BEGIN
 	FROM  
 		XMLTABLE
 		(
-			'$doc/Inputs/Cross_References/Cross_Reference/Item'
+			'$doc/inputs/cross_references/cross_reference/item'
 		PASSING input_xml AS "doc"
 		COLUMNS
 			Field	VARCHAR(128)	PATH 'Field',
