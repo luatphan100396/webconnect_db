@@ -37,7 +37,7 @@ BEGIN
 	  select ''['' from sysibm.sysdummy1
       union all 
 	  
-	  SELECT '''||v_TEMPLATE_DETAIL||''' || case when ROW_ID <>'||@LAST_ROW_ID||' then '','' else '''' end
+	  SELECT '''||v_TEMPLATE_DETAIL||''' || case when ROW_ID <>'||coalesce(@LAST_ROW_ID,'-999')||' then '','' else '''' end
 	  FROM '||@TABLE_NAME||'
 	  
 	  union all
