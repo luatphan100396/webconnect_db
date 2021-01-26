@@ -9,7 +9,6 @@ CREATE_DATE DATE not null,
  constraint OUTPUT_FILE_TEMPLATE_TABLE_PK primary key (NAME,TYPE)
 );
 
- 
 INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE
 (
 	NAME,
@@ -215,6 +214,112 @@ VALUES
 		"Long_Name": "<LONG_NAME>"  
      }',
 'Animal_formatted_pedigree',
+CURRENT DATE 
+)
+;
+-- AUTHOR: NgdTuyen  25/01/2021
+
+INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE
+(
+	NAME,
+	TYPE,
+	TEMPLATE_DETAIL,
+	PREFIX_OUTPUT_NAME,
+	CREATE_DATE
+)
+VALUES
+('ANIM_FORMATTED_NAAB_CODE',
+'JSON',
+'   {      
+        "INPUT_VALUE": "<INPUT_VALUE>",
+        "NAAB_ID":"<NAAB_ID>",
+        "ANIM_KEY":"<ANIM_KEY>",
+        "INT_ID": "<INT_ID>",
+        "SEX_CODE": "<SEX_CODE>",
+        "SPECIES_CODE": "<SPECIES_CODE>"
+     }',
+'Animal_formatted_naab_code',
+CURRENT DATE 
+)
+;
+
+INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE
+(
+	NAME,
+	TYPE,
+	TEMPLATE_DETAIL,
+	PREFIX_OUTPUT_NAME,
+	CREATE_DATE
+)
+VALUES
+('ANIM_FORMATTED_ID_EVALUATION_12_CHARACTER',
+'JSON',
+'   {      
+		"Input": "<INPUT>",
+		"Key":"<ANIM_KEY>",
+		"ID":"<ANIMAL_ID>",
+		"Sex": "<SEX_CODE>",
+		"Source_Code": "<SRC>", 
+		"Pref": "<PREFERED_ID>",
+		"Reg": "<REG>",
+		"Mod_Date": "<MODIFY_DATE>",
+		"Name": "<LONG_NAME>"
+     }',
+'Animal_formatted_id_evaluation_12_character',
+CURRENT DATE 
+)
+;
+
+INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE
+(
+	NAME,
+	TYPE,
+	TEMPLATE_DETAIL,
+	PREFIX_OUTPUT_NAME,
+	CREATE_DATE
+)
+VALUES
+('ANIM_FORMATTED_5FIRST_GENERATION',
+'JSON',
+'   {      
+		"INPUT": "<INPUT>",
+		"ROOT_ANIMAL_ID":"<ROOT_ANIMAL_ID>",
+		"ANIMAL_ID":"<ANIMAL_ID>",
+		"SIRE_INT_ID": "<SIRE_INT_ID>",
+		"DAM_INT_ID": "<DAM_INT_ID>", 
+		"SEX_CODE": "<SEX_CODE>",
+		"GENERATION": "<GENERATION>",
+		"BIRTH_DATE": "<BIRTH_DATE>",
+		"LONG_NAME": "<LONG_NAME>",
+		"GENOTYPED": "<GENOTYPED>",
+		"SRC": "<SRC>",
+		"IS_EXIST": "<IS_EXIST>"
+     }',
+'Animal_formatted_5first_generation',
+CURRENT DATE 
+)
+;
+
+--AUTHOR: Linh Pham 26/01/2021  GET HERD_COW_AND_CONTROL_NUMBER_BY_ID
+
+INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE 
+(
+	NAME,
+	TYPE,
+	TEMPLATE_DETAIL,
+	PREFIX_OUTPUT_NAME,
+	CREATE_DATE
+)
+VALUES
+('HERD_COW_AND_CONTROL_NUMBER',
+'JSON',
+'   {     
+		"ANIMAL_ID": "<INT_ID>", 
+		"HERD_CODE": "<HERD_CODE>",
+		"CTRL_NUM": "<CTRL_NUM>",
+     }',
+'Herd_cow_and_control_number',
+
 CURRENT DATE 
 )
 ;
