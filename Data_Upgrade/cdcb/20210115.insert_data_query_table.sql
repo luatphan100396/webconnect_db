@@ -41,7 +41,7 @@ INSERT INTO QUERY_TABLE
  );
   
 
-  ---Author: Linh Pham 
+  ---Author: Linh Pham 26/01/2021
   INSERT INTO QUERY_TABLE
  ( 
   QUERY_NAME,
@@ -49,7 +49,5 @@ INSERT INTO QUERY_TABLE
  )
  VALUES(
  'Get Cow Herd And Cow Control Numbers By ID',
- 'CALL usp_Get_Cow_Herd_And_Cow_Control_Numbers_By_ID('''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
+ 'CALL usp_Get_Cow_Herd_And_Cow_Control_Numbers_By_ID('''',0,'''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
  );
-
- 
