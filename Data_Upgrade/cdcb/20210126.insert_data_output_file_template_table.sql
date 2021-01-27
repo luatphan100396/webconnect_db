@@ -221,18 +221,17 @@ VALUES
 ('ANIM_FORMATTED_NAAB_CODE',
 'JSON',
 '   {      
-        "INPUT_VALUE": "<INPUT_VALUE>",
-        "NAAB_ID":"<NAAB_ID>",
-        "ANIM_KEY":"<ANIM_KEY>",
-        "INT_ID": "<INT_ID>",
-        "SEX_CODE": "<SEX_CODE>",
-        "SPECIES_CODE": "<SPECIES_CODE>"
+        "Input": "<INPUT_VALUE>",
+        "Naab_Id":"<NAAB_ID>",
+        "Anim_Key":"<ANIM_KEY>",
+        "Int_Id": "<INT_ID>",
+        "Sex_Code": "<SEX_CODE>",
+        "Species_Code": "<SPECIES_CODE>"
      }',
 'Animal_formatted_naab_code',
 CURRENT DATE 
 )
 ;
- 
 
 INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE
 (
@@ -246,18 +245,18 @@ VALUES
 ('ANIM_FORMATTED_5FIRST_GENERATION',
 'JSON',
 '   {      
-		"INPUT": "<INPUT>",
-		"ROOT_ANIMAL_ID":"<ROOT_ANIMAL_ID>",
-		"ANIMAL_ID":"<ANIMAL_ID>",
-		"SIRE_INT_ID": "<SIRE_INT_ID>",
-		"DAM_INT_ID": "<DAM_INT_ID>", 
-		"SEX_CODE": "<SEX_CODE>",
-		"GENERATION": "<GENERATION>",
-		"BIRTH_DATE": "<BIRTH_DATE>",
-		"LONG_NAME": "<LONG_NAME>",
-		"GENOTYPED": "<GENOTYPED>",
+		"Input": "<INPUT>",
+		"Root_Animal_Id":"<ROOT_ANIMAL_ID>",
+		"Animal_Id":"<ANIMAL_ID>",
+		"Sire_Int_Id": "<SIRE_INT_ID>",
+		"Dam_Int_Id": "<DAM_INT_ID>", 
+		"Sex_Code": "<SEX_CODE>",
+		"Generation": "<GENERATION>",
+		"Birth_Date": "<BIRTH_DATE>",
+		"Long_Name": "<LONG_NAME>",
+		"Genotype": "<GENOTYPED>",
 		"SRC": "<SRC>",
-		"IS_EXIST": "<IS_EXIST>"
+		"Is_Exist": "<IS_EXIST>"
      }',
 'Animal_formatted_5first_generation',
 CURRENT DATE 
@@ -358,6 +357,37 @@ VALUES
      }',
 'anim_clonal_family_record',
 
+CURRENT DATE 
+)
+;
+
+--AUTHOR:Tuyen 27/01/2021 Get Animal Type Composite Information For AY,BS,GU,MS
+INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE
+(
+	NAME,
+	TYPE,
+	TEMPLATE_DETAIL,
+	PREFIX_OUTPUT_NAME,
+	CREATE_DATE
+)
+VALUES
+('ANIM_FORMATTED_TYPE_COMPOSITE_INFORMATION_FOR_AY_BS_GU_MS',
+'JSON',
+'   {      
+		"Input": "<INPUT>",
+		"Animal_Id":"<ANIMAL_ID>",
+		"Br":"<BREED_CODE>",
+		"Anim_key":"<ANIM_KEY>",
+		"Sex": "<SEX_CODE>",
+		"Sire_Pta": "<SIRE_PTA>",
+		"Sire_Rel": "<SIRE_REL>",
+		"Udder_Pta": "<UDDER_PTA>",
+		"Udder_Rel": "<UDDER_REL>",
+		"Feet_Pta": "<FEET_PTA>",
+		"Feet_Rel": "<FEET_REL>",
+		"Source": "<SOURCE>"
+     }',
+'Animal_formatted_Type_Composite_Information_For_Ay_Bs_Gu_Ms',
 CURRENT DATE 
 )
 ;
