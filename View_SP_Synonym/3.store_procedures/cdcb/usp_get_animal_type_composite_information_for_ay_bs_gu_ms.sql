@@ -124,7 +124,8 @@ BEGIN
 		FEET_REL,
 		INPUT
 	)
-	SELECT   DISTINCT    i.INT_ID AS ANIMAL_ID, 
+	SELECT       DISTINCT    
+	             i.INT_ID AS ANIMAL_ID, 
                  i.ANIM_KEY,
 				 i.SPECIES_CODE ,
 				 i.SEX_CODE,
