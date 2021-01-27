@@ -46,15 +46,7 @@ BEGIN
 	            else 0
 	       end
 	into IS_EDITABLE
-	from sysibm.sysdummy1;
-	
-	
-	if IS_EDITABLE = 1 then
-	
-	    select fn_Check_Status_Changing_Animal(@INT_ID,@ANIM_KEY,@SPECIES_CODE,@SEX_CODE)
-	    into  IS_EDITABLE from sysibm.sysdummy1;
-	end if;
-	 
+	from sysibm.sysdummy1; 
 	 
 	RETURN IS_EDITABLE;
 END
