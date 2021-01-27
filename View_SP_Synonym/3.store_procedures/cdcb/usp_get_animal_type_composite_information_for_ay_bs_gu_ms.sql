@@ -23,7 +23,9 @@ BEGIN
 		DECLARE LAST_ROW_ID 	 INT;
 		DECLARE DEFAULT_DATE     DATE;
 		DECLARE v_EVAL_PDATE     SMALLINT;
-			  
+	    DECLARE SQLCODE INTEGER DEFAULT 0; 
+	    DECLARE retcode_Operation INTEGER DEFAULT 0;
+	    DECLARE err_message varchar(300);
 	SET DEFAULT_DATE = (select STRING_VALUE FROM dbo.constants where name ='Default_Date_Value' LIMIT 1);
 	-- Get list animal id
     SET v_EVAL_PDATE = (SELECT RUN_PDATE FROM ENV_VAR_TABLE LIMIT 1);
@@ -210,8 +212,13 @@ BEGIN
 	
 		   SET LAST_ROW_ID = (SELECT MAX(ROW_ID) FROM SESSION.TMP_RESULT); 
            SET TEMPLATE_NAME 	='ANIM_FORMATTED_TYPE_COMPOSITE_INFORMATION_FOR_AY_BS_GU_MS'; 
-	       call usp_common_export_json_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,LAST_ROW_ID,EXPORT_FILE_NAME);
+           
+           begin
+			     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+			     SET retcode_Operation = SQLCODE;
+	             call usp_common_export_json_by_template('SESSION.TMP_RESULT',TEMPLATE_NAME,LAST_ROW_ID,EXPORT_FILE_NAME);
 	       
+	       end;
 	       --validate output
 	       IF  EXPORT_FILE_NAME IS NULL THEN 
 	 	     SIGNAL SQLSTATE '65000' SET MESSAGE_TEXT = 'Export failed'; 
