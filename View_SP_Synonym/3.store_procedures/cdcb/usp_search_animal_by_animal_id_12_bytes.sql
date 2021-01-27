@@ -76,7 +76,7 @@ BEGIN
 				a.INT_ID,  
 				a.SEX_CODE,
 				a.SPECIES_CODE,
-				a.ANIM_ID_NUM,
+				t.INPUT_VALUE,
 				t.ORDER
 		 FROM
 		 (
