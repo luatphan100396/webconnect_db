@@ -138,8 +138,8 @@ BEGIN
 		PASSING input_xml AS "doc"
 		COLUMNS 
 		 
-		Field	VARCHAR(128)	PATH 'Field',
-		Value	VARCHAR(3000)	PATH 'Value' 
+		Field	VARCHAR(128)	PATH 'field',
+		Value	VARCHAR(3000)	PATH 'value' 
 		) AS XML_BOOKS;
 	
 	INSERT INTO SESSION.TmpFilterInputsMultiSelect 
@@ -156,8 +156,8 @@ BEGIN
 			'$doc/inputs/cross_references/cross_reference/item'
 		PASSING input_xml AS "doc"
 		COLUMNS
-			Field	VARCHAR(128)	PATH 'Field',
-			Value	VARCHAR(3000)	PATH 'Value' 
+			Field	VARCHAR(128)	PATH 'field',
+			Value	VARCHAR(3000)	PATH 'value' 
 		) AS XML_BOOKS
 	;
 	

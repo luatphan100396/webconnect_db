@@ -338,3 +338,26 @@ VALUES
 
 CURRENT DATE 
 );
+
+--AUTHOR: TRI DO 26/01/2021 get animal clonal family by id
+INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE 
+(
+	NAME,
+	TYPE,
+	TEMPLATE_DETAIL,
+	PREFIX_OUTPUT_NAME,
+	CREATE_DATE
+)
+VALUES
+('ANIM_CLONAL_FAMILY_RECORD',
+'JSON',
+'   {     
+		"MEMBER": "<MEMBER>", 
+		"SOURCE_CODE": "<SOURCE_CODE>",
+		"MOD_DATE": "<MOD_DATE>",
+     }',
+'anim_clonal_family_record',
+
+CURRENT DATE 
+)
+;
