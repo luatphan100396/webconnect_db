@@ -180,7 +180,9 @@ BEGIN
      	begin
 		 	DECLARE cursor1 CURSOR WITH RETURN for
 		 		
-		 	SELECT  a.INT_ID AS ANIMAL_ID,
+		 	SELECT 
+			a.INT_ID_18,  
+			a.INT_ID AS ANIMAL_ID,
 		 	a.ANIM_KEY,
 		 	a.SPECIES_CODE,
 		 	a.SEX_CODE,
