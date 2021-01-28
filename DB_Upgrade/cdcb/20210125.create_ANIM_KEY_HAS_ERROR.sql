@@ -53,7 +53,7 @@ INSERT INTO ANIM_KEY_HAS_ERROR
   
   
  -- Update anim
-merge into ANIM_KEY_HERD_CTRL_NUM as a
+merge into ANIM_KEY_HAS_ERROR as a
 using  ID_XREF_TABLE as b
 on a.INT_ID = b.INT_ID
 and a.SPECIES_CODE = b.SPECIES_CODE

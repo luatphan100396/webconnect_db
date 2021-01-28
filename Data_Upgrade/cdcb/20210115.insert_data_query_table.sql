@@ -95,4 +95,14 @@ INSERT INTO QUERY_TABLE
  'Get Animal Type Composite Information For AY,BS,GU,MS',
  'CALL Usp_Get_Animal_Type_Composite_Information_For_Ay_Bs_Gu_Ms('''',0,'''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
  );
+ --Nghi: 2021-01-28
+ INSERT INTO QUERY_TABLE
+ ( 
+  QUERY_NAME,
+  CALL_COMMAND 
+ )
+ VALUES(
+ 'Get official bull evaluation (domestic or Interbull) by ID',
+ 'CALL usp_Get_Official_Bull_Evaluation_By_ID('''',0,'''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
+ );
  
