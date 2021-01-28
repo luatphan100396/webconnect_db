@@ -38,7 +38,7 @@ CREATE TABLE TMP_BUCK_TYPE_TABLE AS(
 			,SUBSTRING(LINE,85,2) AS PTA_REL_RL_PCT				--reliability rear legs
 			,SUBSTRING(LINE,87,3) AS AVG_DAU_RUMP_A				--dau score rump angle
 			,SUBSTRING(LINE,90,3) AS PTA_RUMP_A_QTY				--PTA rump angle
-			,SUBSTRING(LINE,93,2) AS REL_RUMP_A_PCT				--reliability rump angle
+			,SUBSTRING(LINE,93,2) AS PTA_REL_RUMP_A_PCT				--reliability rump angle
 			,SUBSTRING(LINE,95,3) AS AVG_DAU_RUMP_W				--dau score rump width
 			,SUBSTRING(LINE,98,3) AS PTA_RUMP_W_QTY				--PTA rump width
 			,SUBSTRING(LINE,101,2) AS PTA_REL_RUMP_W_PCT		--reliability rump width
@@ -95,7 +95,7 @@ SELECT	id.ANIM_KEY
 		,SUBSTRING(LINE,85,2) AS PTA_REL_RL_PCT				--reliability rear legs
 		,SUBSTRING(LINE,87,3) AS AVG_DAU_RUMP_A				--dau score rump angle
 		,SUBSTRING(LINE,90,3) AS PTA_RUMP_A_QTY				--PTA rump angle
-		,SUBSTRING(LINE,93,2) AS REL_RUMP_A_PCT				--reliability rump angle
+		,SUBSTRING(LINE,93,2) AS PTA_REL_RUMP_A_PCT				--reliability rump angle
 		,SUBSTRING(LINE,95,3) AS AVG_DAU_RUMP_W				--dau score rump width
 		,SUBSTRING(LINE,98,3) AS PTA_RUMP_W_QTY				--PTA rump width
 		,SUBSTRING(LINE,101,2) AS PTA_REL_RUMP_W_PCT		--reliability rump width
@@ -154,7 +154,7 @@ INSERT INTO BUCK_TYPE_TABLE
 		,PTA_REL_RL_PCT 
 		,AVG_DAU_RUMP_A 
 		,PTA_RUMP_A_QTY 
-		,REL_RUMP_A_PCT 
+		,PTA_REL_RUMP_A_PCT 
 		,AVG_DAU_RUMP_W 
 		,PTA_RUMP_W_QTY 
 		,PTA_REL_RUMP_W_PCT 
@@ -205,7 +205,7 @@ SELECT	ANIM_KEY
 		,PTA_REL_RL_PCT 
 		,AVG_DAU_RUMP_A 
 		,PTA_RUMP_A_QTY 
-		,REL_RUMP_A_PCT 
+		,PTA_REL_RUMP_A_PCT 
 		,AVG_DAU_RUMP_W 
 		,PTA_RUMP_W_QTY 
 		,PTA_REL_RUMP_W_PCT 
