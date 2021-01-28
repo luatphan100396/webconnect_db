@@ -511,11 +511,11 @@ INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE
 	CREATE_DATE
 )
 VALUES
-('BULL_OFFICAL_EVALUATION_EVALUATION_DATA',
+('BULL_OFFICAL_EVALUATION_DATA',
 'JSON',
 '{
-				                  "Name": "TRAIT",
-				                  "Description": "DESCRIPTION",
+				                  "Name": "<TRAIT>",
+				                  "Description": "<DESCRIPTION>",
 				                  "Unit": "<UNIT>",
 				                  "PTA": "<PTA>",
 				                  "REL": "<REL>",
@@ -568,3 +568,128 @@ VALUES
 CURRENT DATE 
 )
 ;
+
+
+--- COW EVALUATION
+
+INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE
+(
+	NAME,
+	TYPE,
+	TEMPLATE_DETAIL,
+	PREFIX_OUTPUT_NAME,
+	CREATE_DATE
+)
+VALUES
+('COW_EVALUATION',
+'JSON',
+'   {      
+		"Input": "<a_info.ROOT_ANIMAL_ID>",
+		"Pub_Run": "<a_info.RUN_NAME>",
+		"Bull":"<a_info.ROOT_ANIMAL_ID>",
+		"Preferred_ID":"<a_info.PREFERED_ID>", 
+		"Long_Name":"<a_info.LONG_NAME>", 
+		"DOB":"<a_info.BIRTH_DATE>",
+		"Sex":"M", 
+		"Source_Code":"<a_info.SRC>", 
+		"Pedigree_Comp%":"<a_info.PED_COMP>",
+		"Genomic_Indicator%":"<a_info.GENOMICS_IND>",
+		"Herd_Code%":"<a_info.LAST_HERD_CODE>", 
+		"Registry_Status":"<a_info.REGIS_STATUS_CODE>",
+		"Sire":"<a_info.SIRE_INT_ID>",
+		"Dam":"<a_info.DAM_INT_ID>",  
+		"NM_Percentile":"<a_info.PERCENTILE>", 
+		"Merit_Data":     [
+		                   <bv_merit.value>
+		                  ]  
+		"Inbreeding_Data":[
+		                    <bv_indicator.value>
+		                  ]  
+		"Evaluation_Data":[
+		                    <bv_evl.value>
+		                  ]  
+    }',
+'Cow_Evaluation',
+CURRENT DATE 
+)
+;
+
+INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE
+(
+	NAME,
+	TYPE,
+	TEMPLATE_DETAIL,
+	PREFIX_OUTPUT_NAME,
+	CREATE_DATE
+)
+VALUES
+('COW_EVALUATION_INBREEDING',
+'JSON',
+'{
+			                  "Type": "<PED_GEN>",
+			                  "(%)": "<INBRD>",
+			                  "Expected_Future_Inbreeding": "<EXP_FUT_INBRD>",
+			                  "Daughter_Inbreeding": "<DAU_INBRD>" 
+	                     	}
+',
+'',
+CURRENT DATE 
+)
+;
+
+ 
+INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE
+(
+	NAME,
+	TYPE,
+	TEMPLATE_DETAIL,
+	PREFIX_OUTPUT_NAME,
+	CREATE_DATE
+)
+VALUES
+('COW_EVALUATION_MERIT_DATA',
+'JSON',
+'{
+			                  "Name": "<TRAIT>",
+			                  "Description": "<DESCRIPTION>",
+			                  "Unit": "<UNIT>",
+			                  "PTA": "<PTA>",
+			                  "REL": "<REL>",
+			                  "PA": "<PA>",
+			                  "RELPA": "<RELPA>" 
+	                     	}
+',
+'',
+CURRENT DATE 
+)
+;
+
+INSERT INTO OUTPUT_FILE_TEMPLATE_TABLE
+(
+	NAME,
+	TYPE,
+	TEMPLATE_DETAIL,
+	PREFIX_OUTPUT_NAME,
+	CREATE_DATE
+)
+VALUES
+('COW_EVALUATION_DATA',
+'JSON',
+'{
+				                  "Name": "<TRAIT>",
+				                  "Description": "<DESCRIPTION>",
+				                  "Unit": "<UNIT>",
+				                  "PTA": "<PTA>",
+				                  "REL": "<REL>",
+				                  "DAUS": "<DAUS>",
+				                  "HERD": "<HERDS>",
+				                  "SRC": "<SRC>", 
+				                  "PA": "<PA>",
+				                  "RELPA": "<RELPA>" 
+	                     	}
+',
+'',
+CURRENT DATE 
+)
+;
+ 
