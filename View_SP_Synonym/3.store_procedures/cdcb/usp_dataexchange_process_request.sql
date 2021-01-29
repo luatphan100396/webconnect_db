@@ -25,6 +25,9 @@ P1: BEGIN
 	    DECLARE retcode INTEGER DEFAULT 0;
 	    DECLARE err_message varchar(300); 
 	 	
+	 	DECLARE sql_search_name varchar(30000);
+	 	DECLARE sql_query varchar(30000);
+	 	
 	 	DECLARE GLOBAL TEMPORARY TABLE SESSION.TmpFilterinputsMultiSelect 
 		(
 			Field      VARCHAR(128),
@@ -118,19 +121,109 @@ P1: BEGIN
 			SELECT @REQUEST_KEY, LINE
 			FROM
 			(
-				SELECT  MIN(ROW_KEY) AS ROW_KEY, LINE
+				SELECT  MIN(ROW_KEY) AS ROW_KEY, TRIM(LINE) AS LINE
 				FROM TMP_DATA_EXCHANGE_INPUT_TABLE
 				GROUP BY  @REQUEST_KEY, LINE
 			)t
 			ORDER BY ROW_KEY;
 		
-		ELSEIF v_INPUT_TYPE = 'ID_LIST' THEN 
+		ELSEIF v_INPUT_TYPE = 'LIST' THEN 
 		    
 		    INSERT INTO DATA_EXCHANGE_INPUT_TABLE( REQUEST_KEY, LINE) 
-	        SELECT @REQUEST_KEY,  ITEM 
+	        SELECT @REQUEST_KEY, ITEM
 	        FROM table(fn_Split_String (v_INPUT,','));
 		
 		END IF;
+		
+		 --search by name
+		IF (select count(1) from SESSION.TmpQUERY where QUERY_NAME in ('Get bull ID/evaluation by name') )  >0 then 
+		
+			    set sql_search_name = (select substr(xmlserialize(xmlagg(xmltext ( 'or anim_name like ''%'||upper(LINE)||'%'''
+		                                             )  ) as VARCHAR(30000)),3)
+							            from DATA_EXCHANGE_INPUT_TABLE  
+									    where REQUEST_KEY = @REQUEST_KEY        
+		                        ); 
+		                        
+		                        
+		        set sql_query ='
+			    INSERT INTO DATA_EXCHANGE_INPUT_ANIMAL_ID_TABLE 
+					(
+					 REQUEST_KEY,
+					 INT_ID ,
+					 ANIM_KEY,
+					 SPECIES_CODE,
+					 SEX_CODE,
+					 INPUT 
+					)   
+			     SELECT   DISTINCT
+			          dx.REQUEST_KEY,
+							 id.INT_ID ,
+							 id.ANIM_KEY,
+							 id.SPECIES_CODE,
+							 id.SEX_CODE,
+							 dx.LINE   
+				 FROM  (
+				      select an.*
+				      from   ANIM_NAME_TABLE an
+					  where '||sql_search_name||' 
+				 )an
+				 
+				 JOIN ID_XREF_TABLE id
+					 ON id.INT_ID = an.INT_ID
+					 AND id.SEX_CODE=an.SEX_CODE
+					 AND id.SPECIES_CODE=an.SPECIES_CODE
+					 AND id.PREFERRED_CODE=''1''
+				 inner join  (
+				      select REQUEST_KEY,
+				             ROW_KEY, 
+				             LINE 
+					   from DATA_EXCHANGE_INPUT_TABLE  
+					   where REQUEST_KEY = '||@REQUEST_KEY||'
+				   )dx 
+				 	   on an.ANIM_NAME like ''%''||upper(dx.LINE)||''%''
+				 with UR
+			 '
+			 ;
+			  
+			 execute immediate sql_query ;
+	  
+		-- search by ID
+		
+		 ELSE
+		     INSERT INTO DATA_EXCHANGE_INPUT_ANIMAL_ID_TABLE 
+			(
+			 REQUEST_KEY,
+			 INT_ID ,
+			 ANIM_KEY,
+			 SPECIES_CODE,
+			 SEX_CODE,
+			 INPUT 
+			)
+			
+			SELECT   dx.REQUEST_KEY,
+					 id.INT_ID ,
+					 id.ANIM_KEY,
+					 id.SPECIES_CODE,
+					 id.SEX_CODE,
+					 dx.LINE   
+			FROM
+		   (
+		      select REQUEST_KEY,
+		             ROW_KEY, 
+		             LINE 
+			   from DATA_EXCHANGE_INPUT_TABLE  
+			   where REQUEST_KEY = @REQUEST_KEY
+		   )dx
+		   INNER JOIN ID_XREF_TABLE id
+		   		ON id.INT_ID = UPPER(dx.LINE)
+		   		
+		   ORDER BY ROW_KEY
+			 ;
+        
+         END IF;
+		
+		 
+		 
 		
 		-- Create operation task
 		
@@ -160,7 +253,7 @@ P1: BEGIN
 	    
 	    commit;
 			    
-		 -- Process each operation
+		  --Process each operation
 			  
 		 INSERT INTO SESSION.TmpOperationKey
 		 SELECT OPERATION_KEY, OPERATION_NAME
@@ -206,14 +299,15 @@ P1: BEGIN
 		 
 	 ELSE 
 	 
-	    -- Clean up input data
+	     --Clean up input data
 	    
 	     DELETE FROM DATA_EXCHANGE_INPUT_TABLE WHERE REQUEST_KEY = @REQUEST_KEY; 
+	     DELETE FROM DATA_EXCHANGE_INPUT_ANIMAL_ID_TABLE WHERE REQUEST_KEY = @REQUEST_KEY; 
 		COMMIT ; 
 		 
 			BEGIN
 				DECLARE cursor1 CURSOR WITH RETURN for
-				SELECT  1 AS RESULT ,retcode
+				SELECT  1 AS RESULT  
 				FROM sysibm.sysdummy1;
 			 
 				OPEN cursor1;

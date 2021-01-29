@@ -116,3 +116,12 @@ INSERT INTO QUERY_TABLE
  'CALL usp_Get_Cow_Evaluation_By_ID('''',0,'''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
  );
  
+  INSERT INTO QUERY_TABLE
+ ( 
+  QUERY_NAME,
+  CALL_COMMAND 
+ )
+ VALUES(
+ 'Get bull ID/evaluation by name',
+ 'CALL usp_Get_Official_Bull_Evaluation_By_ID('''',0,'''','''',''1'',@REQUEST_KEY,@OPERATION_KEY)'
+ );
