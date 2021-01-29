@@ -14,7 +14,8 @@ CREATE OR REPLACE PROCEDURE usp_Get_Animal_Formatted_Pedigree_Info
 	IN @SEX_CODE char(1),
 	IN @IS_DATA_EXCHANGE char(1),
 	IN @REQUEST_KEY BIGINT,
-	IN @OPERATION_KEY BIGINT
+	IN @OPERATION_KEY BIGINT,
+	IN @USER_KEY INT
 )
 	DYNAMIC RESULT SETS 1
 P1: BEGIN
@@ -76,6 +77,15 @@ P1: BEGIN
 		INPUT               varchar(128)
 	
 	) WITH REPLACE ON COMMIT PRESERVE ROWS;
+	
+	--- Check access permission
+	
+	IF (select fn_check_user_name_has_permission_on_component(@USER_KEY,'Queries >> Cattle - ID/Pedigree','Animal Box') from sysibm.sysdummy1)=0 THEN
+	
+	SET err_message = 'Unauthorized user!';
+			SIGNAL SQLSTATE '65001' SET MESSAGE_TEXT = err_message;
+	END IF;
+	
 	
 --		  
 		  

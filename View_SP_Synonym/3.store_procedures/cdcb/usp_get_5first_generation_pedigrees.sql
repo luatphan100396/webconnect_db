@@ -13,7 +13,8 @@ CREATE OR REPLACE PROCEDURE usp_Get_5first_Generation_Pedigrees
 	IN @SEX_CODE char(1), 
 	IN @IS_DATA_EXCHANGE char(1),
 	IN @REQUEST_KEY BIGINT,
-	IN @OPERATION_KEY BIGINT   
+	IN @OPERATION_KEY BIGINT,
+	IN @USER_KEY INT
 )
 DYNAMIC RESULT SETS 3
  
@@ -22,7 +23,17 @@ BEGIN
 	DECLARE TEMPLATE_NAME			VARCHAR(200) ; 
 	DECLARE LAST_ROW_ID 		    INT;
     DECLARE DEFAULT_DATE DATE;
-	  
+	DECLARE err_message varchar(300);
+	
+	--- Check access permission
+	
+	IF (select fn_check_user_name_has_permission_on_component(@USER_KEY,'Queries >> Cattle - ID/Pedigree','Pedigree Tree') from sysibm.sysdummy1)=0 THEN
+	
+	SET err_message = 'Unauthorized user!';
+			SIGNAL SQLSTATE '65001' SET MESSAGE_TEXT = err_message;
+	END IF;
+	 
+	 
 	SET DEFAULT_DATE = (select STRING_VALUE FROM dbo.constants where name ='Default_Date_Value' LIMIT 1);
 	-- Get list animal id
  

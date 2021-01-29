@@ -11,13 +11,20 @@ CREATE OR REPLACE PROCEDURE usp_Get_Animal_Aliases
 	IN @INT_ID char(17), 
 	IN @ANIM_KEY INT, 
 	IN @SPECIES_CODE char(1),
-	IN @SEX_CODE char(1)
+	IN @SEX_CODE char(1),
+	IN @IS_DATA_EXCHANGE char(1),
+	IN @REQUEST_KEY BIGINT,
+	IN @OPERATION_KEY BIGINT,
+	IN @USER_KEY INT
 )
 	DYNAMIC RESULT SETS 1
 P1: BEGIN
 	--DECLARE VARIABLES
 	DECLARE DEFAULT_DATE DATE;
 	DECLARE PREFERRED_INT_ID CHAR(17);
+	
+	DECLARE err_message varchar(300);
+	
 	--DECLARE TEMPORARY TABLE
         DECLARE GLOBAL TEMPORARY TABLE SESSION.TMP_INPUT
 		(
@@ -37,6 +44,17 @@ P1: BEGIN
 		SEX_CODE CHAR(1),
 		PREFERRED_CODE char(1)
 	)WITH REPLACE  ON COMMIT PRESERVE ROWS;
+	
+	--- Check access permission
+	
+	IF (select fn_check_user_name_has_permission_on_component(@USER_KEY,'Queries >> Cattle - ID/Pedigree','Cross References') from sysibm.sysdummy1)=0 THEN
+	
+	SET err_message = 'Unauthorized user!';
+			SIGNAL SQLSTATE '65001' SET MESSAGE_TEXT = err_message;
+	END IF;
+	
+	
+	
 	---SET VARIABLES
 	SET DEFAULT_DATE = (select STRING_VALUE FROM dbo.constants where name ='Default_Date_Value' LIMIT 1 with UR);
 
