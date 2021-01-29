@@ -208,7 +208,7 @@ BEGIN
 			
 	  		-- Create the header for exporting file
 	  		INSERT INTO SESSION.TMP_RESULT
-			VALUES	('Eval Date'
+			VALUES	('EVAL_DATE'
 					,'PTA_MFP_QTY'
 					,'PTA_MFP_REL_PCT' 
 					,'MF_DAU_QTY' 
@@ -219,7 +219,7 @@ BEGIN
 					,'PTA_FAT_QTY' 
 					,'PTA_PRO_QTY'
 					,'9999-12-31'
-					,'row'
+					,1
 					,'INPUT')
 			;
 		
